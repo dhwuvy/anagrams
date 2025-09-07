@@ -26,13 +26,32 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
 
 // Generate 7 random letters
 function generateTiles() {
-  tiles = [];
-  for (let i = 0; i < 7; i++) {
-    let randomLetter = letters[Math.floor(Math.random() * letters.length)];
-    tiles.push(randomLetter);
+  if (!dictionary) return;
+
+  // Get all 7-letter words from dictionary
+  const sevenLetterWords = [...dictionary].filter(word => word.length === 7);
+  const chosenWord = sevenLetterWords[Math.floor(Math.random() * sevenLetterWords.length)];
+
+  // Split word into letters
+  let lettersArray = [...chosenWord];
+
+  // Remove last letter
+  const lastLetter = lettersArray.pop();
+
+  // Shuffle the remaining letters
+  for (let i = lettersArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [lettersArray[i], lettersArray[j]] = [lettersArray[j], lettersArray[i]];
   }
+
+  // Put the last letter back
+  lettersArray.push(lastLetter);
+
+  tiles = lettersArray;
+
   displayTiles();
 }
+
 
 // Display letter tiles
 function displayTiles() {
