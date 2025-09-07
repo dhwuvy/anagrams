@@ -58,6 +58,13 @@ h1 {
   margin: 12px 0;
 }
 
+#timer {
+  font-size: 22px;       /* same size as score */
+  font-weight: bold;     /* same as score and found words */
+  color: black;          /* black text */
+  margin: 8px 0;         /* similar spacing */
+}
+
 #message {
   font-size: 20px;
   font-weight: bold;
