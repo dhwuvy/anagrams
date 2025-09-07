@@ -168,7 +168,7 @@ document.getElementById("wordForm").addEventListener("submit", e => {
   input.value = "";
 });
 
-// 🔹 Keyboard shortcut: Tab + Enter to reset tiles, score, and found words
+// Tab + Enter to reset tiles, score, and found words
 let tabPressed = false;
 
 document.addEventListener("keydown", (e) => {
@@ -176,6 +176,8 @@ document.addEventListener("keydown", (e) => {
     tabPressed = true;
     e.preventDefault(); // prevent moving focus
   } else if (e.key === "Enter" && tabPressed) {
+    e.preventDefault(); // prevent form submission
+
     generateTiles(); // generate new tiles
 
     // Reset score
@@ -188,8 +190,10 @@ document.addEventListener("keydown", (e) => {
     // Clear message
     document.getElementById("message").textContent = "";
 
-    // Blur input so Enter doesn't trigger form submission
-    document.getElementById("wordInput").blur();
+    // Focus input so player can type immediately
+    const inputField = document.getElementById("wordInput");
+    inputField.value = "";
+    inputField.focus();
 
     tabPressed = false;
   }
@@ -200,3 +204,4 @@ document.addEventListener("keyup", (e) => {
     tabPressed = false; // reset if Tab is released
   }
 });
+
