@@ -110,6 +110,25 @@ button {
   background: transparent;
 }
 
+/* Show Anagrams button */
+#showAnagramsBtn {
+  margin: 12px 0;
+  padding: 8px 14px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+/* Anagrams list */
+#anagramsList {
+  list-style: none;
+  padding: 0;
+  margin: 8px auto 20px auto;
+  max-width: 320px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
 @media (max-width: 768px) {
   #tiles { gap: 8px; }
   .tile { width: 46px; height: 46px; font-size: 22px; }
