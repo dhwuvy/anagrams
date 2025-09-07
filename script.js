@@ -17,7 +17,7 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
       .filter(w => /^[A-Z]+$/.test(w));   // only letters
     dictionary = new Set(words);
 
-    document.getElementById("status").textContent = "Dictionary loaded! Start playing!";
+    document.getElementById("status").textContent = "Dictionary loaded! Start playing! (Tip: Press Tab + Enter to reset tiles)";
     console.log("Dictionary loaded with", dictionary.size, "words");
 
     // ✅ Generate tiles only after dictionary is ready
