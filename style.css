@@ -1,140 +1,104 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Anagrams</title>
-
-  <!-- add this -->
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- (optional) remove this whole <style> block, since styles live in style.css -->
-</head>
-<body>
-  <h1>Anagrams</h1>
-
-  <div id="status">Loading dictionary...</div>
-  <div id="tiles"></div>
-  <div id="score">Score: 0</div>
-  <div id="message"></div>
-
-  <form id="wordForm">
-    <input type="text" id="wordInput" placeholder="Type a word" autocomplete="off">
-    <button type="submit">Submit</button>
-  </form>
-
-  <ul id="foundWords"></ul>
-
-  <script src="script.js"></script>
-</body>
-</html>
-style.css
 html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-  }
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
 
-  body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    color: #333;
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  color: #333;
 
-    background-image: url("bg-tile.png");
-    background-repeat: repeat;
-    background-position: 0 0;
-    background-size: auto;
-  }
+  /* Background pattern */
+  background-image: url("bg-tile.png");   /* use your uploaded tile */
+  background-repeat: repeat;               /* repeat tile */
+  background-size: 150px 150px;           /* size of each tile */
+  background-attachment: fixed;           /* prevent zoom when content grows */
+  background-position: top left;
+}
 
-  body{
-    background-image: url("bg-tile.png");
-    background-repeat: repeat;
-    background-size: auto calc(100% - 2px);
-  }
+/* Uncomment this block instead if you want ONE tile to fill the viewport */
+// body {
+//   background-image: url("bg-tile.png");
+//   background-repeat: no-repeat;
+//   background-size: 100vw 100vh;
+//   background-position: center center;
+//   background-attachment: fixed;
+// }
 
+h1 {
+  margin: 20px 0 10px;
+}
 
+#status {
+  font-style: italic;
+  color: #555;
+  margin: 8px 0 14px;
+}
 
-  h1 {
-    margin: 20px 0 10px;
-  }
+#tiles {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 16px 0;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
 
-  #status {
-    font-style: italic;
-    color: #555;
-    margin: 8px 0 14px;
-  }
+.tile {
+  width: 50px;
+  height: 50px;
+  background: #ffeb99;
+  border: 2px solid #d4af37;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  font-weight: bold;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+}
 
-  #tiles {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin: 16px 0;
-    border: none;
-    box-shadow: none;
-    background: transparent;
-  }
+#score,
+#message {
+  margin: 8px 0;
+}
 
-  .tile {
-    width: 50px;
-    height: 50px;
-    background: #ffeb99;
-    border: 2px solid #d4af37;
-    border-radius: 8px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 24px;
-    font-weight: bold;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-  }
+#message {
+  color: #d33;
+  min-height: 24px;
+}
 
-  #score,
-  #message {
-    margin: 8px 0;
-  }
+#wordForm {
+  margin: 16px 0 8px;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
 
-  #message {
-    color: #d33;
-    min-height: 24px;
-  }
+#wordInput {
+  padding: 6px 8px;
+  font-size: 18px;
+  width: 220px;
+}
 
-  #wordForm {
-    margin: 16px 0 8px;
-    border: none;
-    box-shadow: none;
-    background: transparent;
-  }
+button {
+  padding: 8px 14px;
+  font-size: 16px;
+  margin-left: 8px;
+  cursor: pointer;
+  border-radius: 6px;
+}
 
-  #wordInput {
-    padding: 6px 8px;
-    font-size: 18px;
-    width: 220px;
-  }
+#foundWords {
+  list-style: none;
+  padding: 0;
+  margin: 10px auto;
+  max-width: 320px;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
 
-  button {
-    padding: 8px 14px;
-    font-size: 16px;
-    margin-left: 8px;
-    cursor: pointer;
-    border-radius: 6px;
-  }
-
-  #foundWords {
-    list-style: none;
-    padding: 0;
-    margin: 10px auto;
-    max-width: 320px;
-
-    border: none;
-    box-shadow: none;
-    background: transparent;
-  }
-
-  #foundWords li {
-    padding: 4px 0;
-  }
-
-  @media (max-width: 768px) {
-    #tiles { gap: 8px; }
-    .tile { width: 46px; height: 46px; font-size: 22px; }
-    #wordInput { width: 200px; }
-  }
+#foundWords li {
