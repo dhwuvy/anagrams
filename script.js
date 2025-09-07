@@ -3,6 +3,10 @@ let tiles = [];
 let dictionary = null;
 let score = 0;
 
+// Stopwatch variables
+let timerInterval = null;
+let secondsElapsed = 0;
+
 // Load dictionary from GitHub raw URL
 fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
   .then(response => {
@@ -11,10 +15,10 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
   })
   .then(text => {
     const words = text
-      .replace(/^\uFEFF/, '')              // remove BOM
-      .split(/\r?\n/)                      // split lines
-      .map(w => w.trim().toUpperCase())    // clean and uppercase
-      .filter(w => /^[A-Z]+$/.test(w));   // only letters
+      .replace(/^\uFEFF/, '')              
+      .split(/\r?\n/)                      
+      .map(w => w.trim().toUpperCase())    
+      .filter(w => /^[A-Z]+$/.test(w));   
     dictionary = new Set(words);
 
     document.getElementById("status").textContent = "Dictionary loaded! Start playing! (Tip: Press Tab + Enter to reset tiles)";
@@ -32,17 +36,15 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
 function generateTiles() {
   if (!dictionary) return;
 
-  // Filter 7-letter words that meet the rules
   const sevenLetterWords = [...dictionary].filter(word => {
     if (word.length !== 7) return false;
 
     const counts = {};
     for (let char of word) {
       counts[char] = (counts[char] || 0) + 1;
-      if (counts[char] > 2) return false; // Rule 1: no more than 2 of the same letter
+      if (counts[char] > 2) return false;
     }
 
-    // Rule 2: no more than one pair of double letters
     const doubleCount = Object.values(counts).filter(c => c === 2).length;
     if (doubleCount > 1) return false;
 
@@ -55,27 +57,22 @@ function generateTiles() {
     return;
   }
 
-  // Pick a random word from filtered list
   const chosenWord = sevenLetterWords[Math.floor(Math.random() * sevenLetterWords.length)];
-
-  // Split word into letters
   let lettersArray = [...chosenWord];
-
-  // Remove last letter
   const lastLetter = lettersArray.pop();
 
-  // Shuffle the remaining letters
   for (let i = lettersArray.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [lettersArray[i], lettersArray[j]] = [lettersArray[j], lettersArray[i]];
   }
 
-  // Put the last letter back
   lettersArray.push(lastLetter);
-
   tiles = lettersArray;
 
   displayTiles();
+
+  // Start stopwatch
+  startTimer();
 }
 
 // Display letter tiles
@@ -88,6 +85,30 @@ function displayTiles() {
     tileEl.textContent = letter;
     tilesDiv.appendChild(tileEl);
   });
+}
+
+// Stopwatch function
+function startTimer() {
+  clearInterval(timerInterval);
+  secondsElapsed = 0;
+
+  let timerEl = document.getElementById("timer");
+  if (!timerEl) {
+    timerEl = document.createElement("div");
+    timerEl.id = "timer";
+    timerEl.style.fontSize = "20px";
+    timerEl.style.fontWeight = "bold";
+    timerEl.style.color = "black";
+    timerEl.style.margin = "8px 0";
+    document.body.insertBefore(timerEl, document.getElementById("tiles"));
+  }
+
+  timerEl.textContent = `Time: 0s`;
+
+  timerInterval = setInterval(() => {
+    secondsElapsed++;
+    timerEl.textContent = `Time: ${secondsElapsed}s`;
+  }, 1000);
 }
 
 // Check if word can be formed from tiles
@@ -116,7 +137,6 @@ function calculatePoints(length) {
 // Handle word submission
 document.getElementById("wordForm").addEventListener("submit", e => {
   e.preventDefault();
-
   const input = document.getElementById("wordInput");
   const messageDiv = document.getElementById("message");
   const word = input.value.trim().toUpperCase();
@@ -152,18 +172,23 @@ document.getElementById("wordForm").addEventListener("submit", e => {
     return;
   }
 
-  // Add word to list
   const points = calculatePoints(word.length);
   const li = document.createElement("li");
   li.textContent = `${word} (+${points} pts)`;
+  li.style.fontSize = "18px";
+  li.style.fontWeight = "bold";
   foundList.appendChild(li);
 
-  // Update score
   score += points;
-  document.getElementById("score").textContent = `Score: ${score}`;
+  const scoreEl = document.getElementById("score");
+  scoreEl.textContent = `Score: ${score}`;
+  scoreEl.style.fontSize = "20px";
+  scoreEl.style.fontWeight = "bold";
 
-  // Show success message
   messageDiv.textContent = `+${points} points for "${word}"!`;
+  messageDiv.style.fontSize = "20px";
+  messageDiv.style.fontWeight = "bold";
+  messageDiv.style.color = "red";
 
   input.value = "";
 });
@@ -174,23 +199,22 @@ let tabPressed = false;
 document.addEventListener("keydown", (e) => {
   if (e.key === "Tab") {
     tabPressed = true;
-    e.preventDefault(); // prevent moving focus
+    e.preventDefault();
   } else if (e.key === "Enter" && tabPressed) {
-    e.preventDefault(); // prevent form submission
+    e.preventDefault();
 
-    generateTiles(); // generate new tiles
+    generateTiles();
 
-    // Reset score
     score = 0;
-    document.getElementById("score").textContent = `Score: ${score}`;
+    const scoreEl = document.getElementById("score");
+    scoreEl.textContent = `Score: ${score}`;
+    scoreEl.style.fontSize = "20px";
+    scoreEl.style.fontWeight = "bold";
 
-    // Clear found words list
     document.getElementById("foundWords").innerHTML = "";
+    const messageDiv = document.getElementById("message");
+    messageDiv.textContent = "";
 
-    // Clear message
-    document.getElementById("message").textContent = "";
-
-    // Focus input so player can type immediately
     const inputField = document.getElementById("wordInput");
     inputField.value = "";
     inputField.focus();
@@ -200,8 +224,5 @@ document.addEventListener("keydown", (e) => {
 });
 
 document.addEventListener("keyup", (e) => {
-  if (e.key === "Tab") {
-    tabPressed = false; // reset if Tab is released
-  }
+  if (e.key === "Tab") tabPressed = false;
 });
-
