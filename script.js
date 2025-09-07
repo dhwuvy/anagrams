@@ -11,11 +11,12 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
   })
   .then(text => {
     const words = text
-      .replace(/^\uFEFF/, '')
-      .split(/\r?\n/)
-      .map(w => w.trim().toUpperCase())
-      .filter(w => w.length > 0);
+      .replace(/^\uFEFF/, '')              // remove BOM
+      .split(/\r?\n/)                      // split lines
+      .map(w => w.trim().toUpperCase())    // clean and uppercase
+      .filter(w => /^[A-Z]+$/.test(w));   // only letters
     dictionary = new Set(words);
+
     document.getElementById("status").textContent = "Dictionary loaded! Start playing!";
     console.log("Dictionary loaded with", dictionary.size, "words");
 
@@ -27,7 +28,7 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
     document.getElementById("status").textContent = "Failed to load dictionary!";
   });
 
-// Generate 7 random letters
+// Generate 7 random letters with last letter fixed
 function generateTiles() {
   if (!dictionary) return;
 
@@ -54,7 +55,6 @@ function generateTiles() {
 
   displayTiles();
 }
-
 
 // Display letter tiles
 function displayTiles() {
@@ -145,6 +145,3 @@ document.getElementById("wordForm").addEventListener("submit", e => {
 
   input.value = "";
 });
-
-// Initialize game
-generateTiles();
