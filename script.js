@@ -32,8 +32,30 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
 function generateTiles() {
   if (!dictionary) return;
 
-  // Get all 7-letter words from dictionary
-  const sevenLetterWords = [...dictionary].filter(word => word.length === 7);
+  // Filter 7-letter words that meet the rules
+  const sevenLetterWords = [...dictionary].filter(word => {
+    if (word.length !== 7) return false;
+
+    const counts = {};
+    for (let char of word) {
+      counts[char] = (counts[char] || 0) + 1;
+      if (counts[char] > 2) return false; // Rule 1: no more than 2 of the same letter
+    }
+
+    // Rule 2: no more than one pair of double letters
+    const doubleCount = Object.values(counts).filter(c => c === 2).length;
+    if (doubleCount > 1) return false;
+
+    return true;
+  });
+
+  if (sevenLetterWords.length === 0) {
+    console.error("No suitable words found under these constraints!");
+    document.getElementById("status").textContent = "No words available for these rules!";
+    return;
+  }
+
+  // Pick a random word from filtered list
   const chosenWord = sevenLetterWords[Math.floor(Math.random() * sevenLetterWords.length)];
 
   // Split word into letters
@@ -55,6 +77,7 @@ function generateTiles() {
 
   displayTiles();
 }
+
 
 // Display letter tiles
 function displayTiles() {
