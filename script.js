@@ -124,10 +124,10 @@ document.getElementById("wordForm").addEventListener("submit", e => {
   }
 
   const foundList = document.getElementById("foundWords");
-  if ([...foundList.children].some(li => li.textContent.startsWith(word))) {
-    messageDiv.textContent = "You already used that word!";
-    input.value = "";
-    return;
+  if ([...foundList.children].some(li => li.textContent.split(' ')[0] === word)) {
+  messageDiv.textContent = "You already used that word!";
+  input.value = "";
+  return;
   }
 
   // Add word to list
