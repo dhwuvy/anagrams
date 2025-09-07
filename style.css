@@ -9,22 +9,13 @@ body {
   text-align: center;
   color: #333;
 
-  /* Background pattern */
-  background-image: url("bg-tile.png");   /* use your uploaded tile */
-  background-repeat: repeat;               /* repeat tile */
-  background-size: 150px 150px;           /* size of each tile */
-  background-attachment: fixed;           /* prevent zoom when content grows */
-  background-position: top left;
+  /* Single tile fills the entire viewport */
+  background-image: url("bg-tile.png");
+  background-repeat: no-repeat;
+  background-size: 100vw 100vh;   /* width = viewport width, height = viewport height */
+  background-position: center center;
+  background-attachment: fixed;    /* keeps the tile in place when scrolling */
 }
-
-/* Uncomment this block instead if you want ONE tile to fill the viewport */
-// body {
-//   background-image: url("bg-tile.png");
-//   background-repeat: no-repeat;
-//   background-size: 100vw 100vh;
-//   background-position: center center;
-//   background-attachment: fixed;
-// }
 
 h1 {
   margin: 20px 0 10px;
