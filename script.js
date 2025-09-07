@@ -18,6 +18,9 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
     dictionary = new Set(words);
     document.getElementById("status").textContent = "Dictionary loaded! Start playing!";
     console.log("Dictionary loaded with", dictionary.size, "words");
+
+    // ✅ Generate tiles only after dictionary is ready
+    generateTiles();
   })
   .catch(err => {
     console.error("Failed to load dictionary:", err);
