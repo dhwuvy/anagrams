@@ -45,6 +45,13 @@ h1 {
   width: 200px;
 }
 
+#foundWords {
+  font-size: 16px;
+  margin-top: 10px;
+  list-style: none;
+  padding: 0;
+}
+
 button {
   padding: 10px 15px;
   font-size: 18px;
