@@ -1,4 +1,4 @@
-const letters = "ABCDEFGHIJKLMNOPRSTUVWY";
+const letters = "ABCDEFGHIKLMNOPRSTUVWY"; // removed Q, Z, X
 let tiles = [];
 let dictionary = null;
 let score = 0;
@@ -73,35 +73,37 @@ function calculatePoints(length) {
 document.getElementById("wordForm").addEventListener("submit", e => {
   e.preventDefault();
 
+  const input = document.getElementById("wordInput");
+  const messageDiv = document.getElementById("message");
+  const word = input.value.trim().toUpperCase();
+
   if (!dictionary) {
-    alert("Dictionary still loading... please wait.");
+    messageDiv.textContent = "Dictionary still loading... please wait.";
+    input.value = "";
     return;
   }
 
-  const input = document.getElementById("wordInput");
-  const word = input.value.trim().toUpperCase();
-
   if (word.length < 3) {
-    alert("Words must be at least 3 letters long!");
+    messageDiv.textContent = "Words must be at least 3 letters long!";
     input.value = "";
     return;
   }
 
   if (!canFormWord(word)) {
-    alert("Invalid word! (uses letters not in tiles)");
+    messageDiv.textContent = "Invalid word! (uses letters not in tiles)";
     input.value = "";
     return;
   }
 
   if (!dictionary.has(word)) {
-    alert("Not a valid Scrabble word!");
+    messageDiv.textContent = "Not a valid Scrabble word!";
     input.value = "";
     return;
   }
 
   const foundList = document.getElementById("foundWords");
   if ([...foundList.children].some(li => li.textContent.startsWith(word))) {
-    alert("You already used that word!");
+    messageDiv.textContent = "You already used that word!";
     input.value = "";
     return;
   }
@@ -116,10 +118,11 @@ document.getElementById("wordForm").addEventListener("submit", e => {
   score += points;
   document.getElementById("score").textContent = `Score: ${score}`;
 
+  // Show success message
+  messageDiv.textContent = `+${points} points for "${word}"!`;
+
   input.value = "";
 });
-
+  
 // Initialize game
 generateTiles();
-
-
