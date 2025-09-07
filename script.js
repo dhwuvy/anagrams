@@ -11,13 +11,14 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
   })
   .then(text => {
     const words = text
-      .replace(/^\uFEFF/, '')           
+      .replace(/^\uFEFF/, '')           // remove BOM if present
       .split(/\r?\n/)                   
       .map(w => w.trim().toUpperCase()) 
       .filter(w => w.length > 0);       
     dictionary = new Set(words);
-    document.getElementById("status").textContent = "Dictionary loaded! Start playing.";
+    document.getElementById("status").textContent = "Dictionary loaded! Start playing!";
     console.log("Dictionary loaded with", dictionary.size, "words");
+    console.log("Does dictionary have 'RIP'?", dictionary.has("RIP"));
   })
   .catch(err => {
     console.error("Failed to load dictionary:", err);
@@ -81,33 +82,42 @@ document.getElementById("wordForm").addEventListener("submit", e => {
   const input = document.getElementById("wordInput");
   const word = input.value.trim().toUpperCase();
 
+  // Minimum length check
   if (word.length < 3) {
     alert("Words must be at least 3 letters long!");
     input.value = "";
     return;
   }
 
-  if (word && canFormWord(word)) {
-    if (dictionary.has(word)) {
-      const foundList = document.getElementById("foundWords");
-
-      if (![...foundList.children].some(li => li.textContent === word)) {
-        const li = document.createElement("li");
-        li.textContent = `${word} (+${calculatePoints(word.length)} pts)`;
-        foundList.appendChild(li);
-
-        // Add points
-        score += calculatePoints(word.length);
-        document.getElementById("score").textContent = `Score: ${score}`;
-      } else {
-        alert("You already used that word!");
-      }
-    } else {
-      alert("Not a valid Scrabble word!");
-    }
-  } else {
+  if (!canFormWord(word)) {
     alert("Invalid word! (uses letters not in tiles)");
+    input.value = "";
+    return;
   }
+
+  if (!dictionary.has(word)) {
+    alert("Not a valid Scrabble word!");
+    input.value = "";
+    return;
+  }
+
+  // Prevent duplicates
+  const foundList = document.getElementById("foundWords");
+  if ([...foundList.children].some(li => li.textContent.startsWith(word))) {
+    alert("You already used that word!");
+    input.value = "";
+    return;
+  }
+
+  // Add word to list
+  const li = document.createElement("li");
+  const points = calculatePoints(word.length);
+  li.textContent = `${word} (+${points} pts)`;
+  foundList.appendChild(li);
+
+  // Update score
+  score += points;
+  document.getElementById("score").textContent = `Score: ${score}`;
 
   input.value = "";
 });
