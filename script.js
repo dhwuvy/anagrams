@@ -123,6 +123,6 @@ document.getElementById("wordForm").addEventListener("submit", e => {
 
   input.value = "";
 });
-  
+
 // Initialize game
 generateTiles();
