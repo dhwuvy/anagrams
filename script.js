@@ -71,6 +71,10 @@ function generateTiles() {
 
   displayTiles();
 
+  // Clear anagrams list if it exists
+  const anagramsDiv = document.getElementById("anagramsList");
+  if (anagramsDiv) anagramsDiv.innerHTML = "";
+
   // Start stopwatch
   startTimer();
 }
@@ -193,9 +197,54 @@ document.getElementById("wordForm").addEventListener("submit", e => {
   input.value = "";
 });
 
+// Show anagrams button
+const showAnagramsBtn = document.createElement("button");
+showAnagramsBtn.textContent = "Show Anagrams";
+showAnagramsBtn.style.marginTop = "10px";
+showAnagramsBtn.style.padding = "6px 10px";
+showAnagramsBtn.style.fontSize = "16px";
+showAnagramsBtn.style.cursor = "pointer";
+document.body.appendChild(showAnagramsBtn);
+
+const anagramsDiv = document.createElement("div");
+anagramsDiv.id = "anagramsList";
+anagramsDiv.style.marginTop = "8px";
+anagramsDiv.style.maxWidth = "320px";
+anagramsDiv.style.marginLeft = "auto";
+anagramsDiv.style.marginRight = "auto";
+document.body.appendChild(anagramsDiv);
+
+showAnagramsBtn.addEventListener("click", () => {
+  anagramsDiv.innerHTML = ""; // clear previous
+
+  const tilesCopy = [...tiles];
+  const validWords = [...dictionary].filter(word => {
+    if (word.length < 3) return false;
+    let tempTiles = [...tilesCopy];
+    for (let char of word) {
+      let index = tempTiles.indexOf(char);
+      if (index === -1) return false;
+      tempTiles.splice(index, 1);
+    }
+    return true;
+  }).sort();
+
+  if (validWords.length === 0) {
+    anagramsDiv.textContent = "No valid anagrams found.";
+    return;
+  }
+
+  validWords.forEach(word => {
+    const wEl = document.createElement("div");
+    wEl.textContent = word;
+    wEl.style.fontSize = "18px";
+    wEl.style.fontWeight = "bold";
+    anagramsDiv.appendChild(wEl);
+  });
+});
+
 // Tab + Enter to reset tiles, score, and found words
 let tabPressed = false;
-
 document.addEventListener("keydown", (e) => {
   if (e.key === "Tab") {
     tabPressed = true;
@@ -214,6 +263,9 @@ document.addEventListener("keydown", (e) => {
     document.getElementById("foundWords").innerHTML = "";
     const messageDiv = document.getElementById("message");
     messageDiv.textContent = "";
+
+    // clear anagrams list
+    document.getElementById("anagramsList").innerHTML = "";
 
     const inputField = document.getElementById("wordInput");
     inputField.value = "";
