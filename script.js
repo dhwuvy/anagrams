@@ -2,18 +2,26 @@ const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 let tiles = [];
 let dictionary = null;
 
-// Load dictionary from words.txt (or GitHub raw link)
-fetch("words.txt")
-  .then(response => response.text())
+// Load dictionary from GitHub raw URL
+fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
+  .then(response => {
+    if (!response.ok) throw new Error("Failed to fetch dictionary");
+    return response.text();
+  })
   .then(text => {
     const words = text
       .replace(/^\uFEFF/, '')           // remove BOM if present
-      .split(/\r?\n/)                   // handle both \n and \r\n line endings
-      .map(w => w.trim().toUpperCase()) // clean spaces and convert to uppercase
+      .split(/\r?\n/)                   // handle CRLF or LF
+      .map(w => w.trim().toUpperCase()) // remove spaces & convert to uppercase
       .filter(w => w.length > 0);       // ignore empty lines
     dictionary = new Set(words);
     document.getElementById("status").textContent = "Dictionary loaded! Start playing.";
     console.log("Dictionary loaded with", dictionary.size, "words");
+    console.log("Does dictionary have 'RIP'?", dictionary.has("RIP"));
+  })
+  .catch(err => {
+    console.error("Failed to load dictionary:", err);
+    document.getElementById("status").textContent = "Failed to load dictionary!";
   });
 
 // Generate 7 random letters
