@@ -102,3 +102,11 @@ button {
 }
 
 #foundWords li {
+  padding: 4px 0;
+}
+
+@media (max-width: 768px) {
+  #tiles { gap: 8px; }
+  .tile { width: 46px; height: 46px; font-size: 22px; }
+  #wordInput { width: 200px; }
+}
