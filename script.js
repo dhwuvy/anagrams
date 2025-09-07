@@ -1,7 +1,17 @@
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 let tiles = [];
+let dictionary = null;
 
-// generate 7 random letters
+// Load dictionary from words.txt
+fetch("words.txt")
+  .then(response => response.text())
+  .then(text => {
+    dictionary = new Set(text.split("\n").map(w => w.trim().toUpperCase()));
+    document.getElementById("status").textContent = "Dictionary loaded! Start playing.";
+    console.log("Dictionary loaded with", dictionary.size, "words");
+  });
+
+// Generate 7 random letters
 function generateTiles() {
   tiles = [];
   for (let i = 0; i < 7; i++) {
@@ -11,6 +21,7 @@ function generateTiles() {
   displayTiles();
 }
 
+// Display letter tiles
 function displayTiles() {
   const tilesDiv = document.getElementById("tiles");
   tilesDiv.innerHTML = "";
@@ -22,6 +33,7 @@ function displayTiles() {
   });
 }
 
+// Check if word can be formed from tiles
 function canFormWord(word) {
   let tempTiles = [...tiles];
   for (let char of word.toUpperCase()) {
@@ -32,16 +44,33 @@ function canFormWord(word) {
   return true;
 }
 
+// Handle word submission
 document.getElementById("wordForm").addEventListener("submit", e => {
   e.preventDefault();
+
+  if (!dictionary) {
+    alert("Dictionary still loading... please wait.");
+    return;
+  }
+
   const input = document.getElementById("wordInput");
-  const word = input.value.trim();
+  const word = input.value.trim().toUpperCase();
 
   if (word && canFormWord(word)) {
-    const foundList = document.getElementById("foundWords");
-    const li = document.createElement("li");
-    li.textContent = word;
-    foundList.appendChild(li);
+    if (dictionary.has(word)) {
+      const foundList = document.getElementById("foundWords");
+
+      // Prevent duplicates
+      if (![...foundList.children].some(li => li.textContent === word)) {
+        const li = document.createElement("li");
+        li.textContent = word;
+        foundList.appendChild(li);
+      } else {
+        alert("You already used that word!");
+      }
+    } else {
+      alert("Not a valid Scrabble word!");
+    }
   } else {
     alert("Invalid word! (uses letters not in tiles)");
   }
@@ -49,5 +78,6 @@ document.getElementById("wordForm").addEventListener("submit", e => {
   input.value = "";
 });
 
-// initialize game
+// Initialize game
 generateTiles();
+
