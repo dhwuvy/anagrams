@@ -38,16 +38,13 @@ function generateTiles() {
 
   const sevenLetterWords = [...dictionary].filter(word => {
     if (word.length !== 7) return false;
-
     const counts = {};
     for (let char of word) {
       counts[char] = (counts[char] || 0) + 1;
       if (counts[char] > 2) return false;
     }
-
     const doubleCount = Object.values(counts).filter(c => c === 2).length;
     if (doubleCount > 1) return false;
-
     return true;
   });
 
@@ -227,7 +224,7 @@ showAnagramsBtn.addEventListener("click", () => {
       tempTiles.splice(index, 1);
     }
     return true;
-  }).sort();
+  }).sort((a,b) => b.length - a.length); // longest -> shortest
 
   if (validWords.length === 0) {
     anagramsDiv.textContent = "No valid anagrams found.";
@@ -278,3 +275,4 @@ document.addEventListener("keydown", (e) => {
 document.addEventListener("keyup", (e) => {
   if (e.key === "Tab") tabPressed = false;
 });
+
