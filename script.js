@@ -1,4 +1,4 @@
-const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const letters = "ABCDEFGHIJKLMNOPRSTUVWY";
 let tiles = [];
 let dictionary = null;
 let score = 0;
@@ -11,14 +11,13 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
   })
   .then(text => {
     const words = text
-      .replace(/^\uFEFF/, '')           // remove BOM if present
-      .split(/\r?\n/)                   
-      .map(w => w.trim().toUpperCase()) 
-      .filter(w => w.length > 0);       
+      .replace(/^\uFEFF/, '')
+      .split(/\r?\n/)
+      .map(w => w.trim().toUpperCase())
+      .filter(w => w.length > 0);
     dictionary = new Set(words);
     document.getElementById("status").textContent = "Dictionary loaded! Start playing!";
     console.log("Dictionary loaded with", dictionary.size, "words");
-    console.log("Does dictionary have 'RIP'?", dictionary.has("RIP"));
   })
   .catch(err => {
     console.error("Failed to load dictionary:", err);
@@ -82,7 +81,6 @@ document.getElementById("wordForm").addEventListener("submit", e => {
   const input = document.getElementById("wordInput");
   const word = input.value.trim().toUpperCase();
 
-  // Minimum length check
   if (word.length < 3) {
     alert("Words must be at least 3 letters long!");
     input.value = "";
@@ -101,7 +99,6 @@ document.getElementById("wordForm").addEventListener("submit", e => {
     return;
   }
 
-  // Prevent duplicates
   const foundList = document.getElementById("foundWords");
   if ([...foundList.children].some(li => li.textContent.startsWith(word))) {
     alert("You already used that word!");
@@ -110,8 +107,8 @@ document.getElementById("wordForm").addEventListener("submit", e => {
   }
 
   // Add word to list
-  const li = document.createElement("li");
   const points = calculatePoints(word.length);
+  const li = document.createElement("li");
   li.textContent = `${word} (+${points} pts)`;
   foundList.appendChild(li);
 
@@ -124,3 +121,5 @@ document.getElementById("wordForm").addEventListener("submit", e => {
 
 // Initialize game
 generateTiles();
+
+
