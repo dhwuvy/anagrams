@@ -78,7 +78,6 @@ function generateTiles() {
   displayTiles();
 }
 
-
 // Display letter tiles
 function displayTiles() {
   const tilesDiv = document.getElementById("tiles");
@@ -148,9 +147,9 @@ document.getElementById("wordForm").addEventListener("submit", e => {
 
   const foundList = document.getElementById("foundWords");
   if ([...foundList.children].some(li => li.textContent.split(' ')[0] === word)) {
-  messageDiv.textContent = "You already used that word!";
-  input.value = "";
-  return;
+    messageDiv.textContent = "You already used that word!";
+    input.value = "";
+    return;
   }
 
   // Add word to list
@@ -169,7 +168,7 @@ document.getElementById("wordForm").addEventListener("submit", e => {
   input.value = "";
 });
 
-// Add keyboard shortcut: Tab + Enter
+// 🔹 Keyboard shortcut: Tab + Enter to reset tiles, score, and found words
 let tabPressed = false;
 
 document.addEventListener("keydown", (e) => {
@@ -178,6 +177,20 @@ document.addEventListener("keydown", (e) => {
     e.preventDefault(); // prevent moving focus
   } else if (e.key === "Enter" && tabPressed) {
     generateTiles(); // generate new tiles
+
+    // Reset score
+    score = 0;
+    document.getElementById("score").textContent = `Score: ${score}`;
+
+    // Clear found words list
+    document.getElementById("foundWords").innerHTML = "";
+
+    // Clear message
+    document.getElementById("message").textContent = "";
+
+    // Blur input so Enter doesn't trigger form submission
+    document.getElementById("wordInput").blur();
+
     tabPressed = false;
   }
 });
@@ -187,4 +200,3 @@ document.addEventListener("keyup", (e) => {
     tabPressed = false; // reset if Tab is released
   }
 });
-
