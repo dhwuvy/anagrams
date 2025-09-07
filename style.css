@@ -5,7 +5,7 @@ body {
   padding: 0;
 
   /* 🔹 Background pattern */
-  background: url("images/bg-tile.png") repeat;
+  background: url("bg-tile.png") repeat;
   background-size: 150px 150px; /* adjust density of pattern */
 
   color: #333;
