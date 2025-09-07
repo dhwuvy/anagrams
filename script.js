@@ -168,3 +168,23 @@ document.getElementById("wordForm").addEventListener("submit", e => {
 
   input.value = "";
 });
+
+// Add keyboard shortcut: Tab + Enter
+let tabPressed = false;
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Tab") {
+    tabPressed = true;
+    e.preventDefault(); // prevent moving focus
+  } else if (e.key === "Enter" && tabPressed) {
+    generateTiles(); // generate new tiles
+    tabPressed = false;
+  }
+});
+
+document.addEventListener("keyup", (e) => {
+  if (e.key === "Tab") {
+    tabPressed = false; // reset if Tab is released
+  }
+});
+
