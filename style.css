@@ -51,14 +51,25 @@ h1 {
   box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
 }
 
-#score,
-#message {
-  margin: 8px 0;
+/* Updated text for score, message, and found words */
+#score {
+  font-size: 22px;
+  font-weight: bold;
+  margin: 12px 0;
 }
 
 #message {
+  font-size: 20px;
+  font-weight: bold;
   color: #d33;
-  min-height: 24px;
+  min-height: 28px;
+  margin: 8px 0;
+}
+
+#foundWords li {
+  font-size: 18px;
+  font-weight: bold;
+  padding: 6px 0;
 }
 
 #wordForm {
@@ -92,12 +103,9 @@ button {
   background: transparent;
 }
 
-#foundWords li {
-  padding: 4px 0;
-}
-
 @media (max-width: 768px) {
   #tiles { gap: 8px; }
   .tile { width: 46px; height: 46px; font-size: 22px; }
   #wordInput { width: 200px; }
 }
+
