@@ -2,11 +2,15 @@ const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 let tiles = [];
 let dictionary = null;
 
-// Load dictionary from words.txt
+// Load dictionary from words.txt (already uppercase)
 fetch("words.txt")
   .then(response => response.text())
   .then(text => {
-    dictionary = new Set(text.split("\n").map(w => w.trim().toUpperCase()));
+    const words = text
+      .split(/\r?\n/)       // handle \n or \r\n line endings
+      .map(w => w.trim())
+      .filter(w => w.length > 0);
+    dictionary = new Set(words);
     document.getElementById("status").textContent = "Dictionary loaded! Start playing.";
     console.log("Dictionary loaded with", dictionary.size, "words");
   });
@@ -36,7 +40,7 @@ function displayTiles() {
 // Check if word can be formed from tiles
 function canFormWord(word) {
   let tempTiles = [...tiles];
-  for (let char of word.toUpperCase()) {
+  for (let char of word.toUpperCase()) { // convert input to uppercase for tile check
     let index = tempTiles.indexOf(char);
     if (index === -1) return false;
     tempTiles.splice(index, 1); // remove used letter
@@ -54,7 +58,7 @@ document.getElementById("wordForm").addEventListener("submit", e => {
   }
 
   const input = document.getElementById("wordInput");
-  const word = input.value.trim().toUpperCase();
+  const word = input.value.trim().toUpperCase(); // convert input to uppercase
 
   if (word && canFormWord(word)) {
     if (dictionary.has(word)) {
@@ -80,4 +84,3 @@ document.getElementById("wordForm").addEventListener("submit", e => {
 
 // Initialize game
 generateTiles();
-
