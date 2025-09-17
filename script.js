@@ -125,9 +125,16 @@ function calculatePoints(length) {
   if (length === 3) return 100;
   if (length === 4) return 400;
   if (length === 5) return 1200;
-
-  // from 6 upwards, it's 1000 increments
-  return (length - 3) * 1000;
+  if (length === 6) return 2000;
+  if (length === 7) return 3000;
+  if (length === 8) return 4000;
+  if (length === 9) return 5000;
+  if (length === 10) return 6000;
+  if (length === 11) return 7000;
+  if (length === 12) return 8000;
+  if (length === 13) return 9000;
+  if (length === 14) return 10000;
+  if (length === 15) return 11000;
 }
 
 // Handle word submission
