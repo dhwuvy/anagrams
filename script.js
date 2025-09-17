@@ -121,7 +121,6 @@ function canFormWord(word) {
 // Calculate points
 function calculatePoints(length) {
   if (length < 3) return 0;
-
   if (length === 3) return 100;
   if (length === 4) return 400;
   if (length === 5) return 1200;
@@ -225,18 +224,100 @@ anagramsDiv.style.marginLeft = "auto";
 anagramsDiv.style.marginRight = "auto";
 document.body.appendChild(anagramsDiv);
 
+// Custom letters input & button
+const customDiv = document.createElement("div");
+customDiv.style.marginTop = "10px";
+customDiv.style.textAlign = "center";
+customDiv.innerHTML = `
+  <input type="text" id="customLettersInput" placeholder="Enter custom letters" maxlength="15" style="font-size:16px; padding:4px;">
+  <button id="customLettersBtn" style="font-size:16px; padding:5px 10px; cursor:pointer;">Use Custom Letters</button>
+`;
+document.body.appendChild(customDiv);
+
+document.getElementById("customLettersBtn").addEventListener("click", () => {
+  const input = document.getElementById("customLettersInput");
+  let lettersInput = input.value.trim().toUpperCase();
+  const lengthInput = document.getElementById("wordLength");
+  const targetLength = parseInt(lengthInput.value, 10);
+
+  const messageDiv = document.getElementById("message");
+
+  if (lettersInput.length !== targetLength) {
+    messageDiv.textContent = `Input must be exactly ${targetLength} letters!`;
+    return;
+  }
+
+  if (!/^[A-Z]+$/.test(lettersInput)) {
+    messageDiv.textContent = "Letters must be A-Z only!";
+    return;
+  }
+
+  // Check no more than 2 of the same letter, max one double
+  const counts = {};
+  for (let char of lettersInput) {
+    counts[char] = (counts[char] || 0) + 1;
+    if (counts[char] > 2) {
+      messageDiv.textContent = "No letter can appear more than twice!";
+      return;
+    }
+  }
+  const doubleCount = Object.values(counts).filter(c => c === 2).length;
+  if (doubleCount > 1) {
+    messageDiv.textContent = "At most one letter can appear twice!";
+    return;
+  }
+
+  // Last letter fixed
+  let lettersArray = lettersInput.split("");
+  const lastLetter = lettersArray.pop(); 
+
+  for (let i = lettersArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [lettersArray[i], lettersArray[j]] = [lettersArray[j], lettersArray[i]];
+  }
+
+  lettersArray.push(lastLetter);
+  tiles = lettersArray;
+
+  displayTiles();
+
+  // Reset found words and timer
+  document.getElementById("foundWords").innerHTML = "";
+  document.getElementById("anagramsList").innerHTML = "";
+  messageDiv.textContent = "Custom letters set!";
+  score = 0;
+  document.getElementById("score").textContent = `Score: ${score}`;
+
+  startTimer();
+});
+
+// Updated Show Anagrams logic
 showAnagramsBtn.addEventListener("click", () => {
   anagramsDiv.innerHTML = ""; // clear previous
 
-  const tilesCopy = [...tiles];
+  if (!dictionary) return;
+
+  // Count tiles
+  const tilesCount = {};
+  tiles.forEach(char => {
+    tilesCount[char] = (tilesCount[char] || 0) + 1;
+  });
+
   const validWords = [...dictionary].filter(word => {
     if (word.length < 3) return false;
-    let tempTiles = [...tilesCopy];
+
+    const wordCount = {};
     for (let char of word) {
-      let index = tempTiles.indexOf(char);
-      if (index === -1) return false;
-      tempTiles.splice(index, 1);
+      wordCount[char] = (wordCount[char] || 0) + 1;
     }
+
+    // Check if word can be formed exactly with available tiles
+    for (let char in wordCount) {
+      if (!tilesCount[char] || wordCount[char] > tilesCount[char]) {
+        return false;
+      }
+    }
+
     return true;
   });
 
@@ -306,3 +387,4 @@ document.getElementById("newGameBtn").addEventListener("click", () => {
   document.getElementById("anagramsList").innerHTML = "";
   generateTiles();
 });
+
