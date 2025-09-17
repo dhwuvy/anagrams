@@ -32,12 +32,17 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
     document.getElementById("status").textContent = "Failed to load dictionary!";
   });
 
-// Generate 7 random letters with last letter fixed
+// Generate N random letters with last letter fixed
 function generateTiles() {
   if (!dictionary) return;
 
-  const sevenLetterWords = [...dictionary].filter(word => {
-    if (word.length !== 7) return false;
+  const lengthInput = document.getElementById("wordLength");
+  const targetLength = parseInt(lengthInput.value, 10);
+
+  const candidateWords = [...dictionary].filter(word => {
+    if (word.length !== targetLength) return false;
+
+    // rules: no more than 2 of the same letter, at most one double
     const counts = {};
     for (let char of word) {
       counts[char] = (counts[char] || 0) + 1;
@@ -45,18 +50,20 @@ function generateTiles() {
     }
     const doubleCount = Object.values(counts).filter(c => c === 2).length;
     if (doubleCount > 1) return false;
+
     return true;
   });
 
-  if (sevenLetterWords.length === 0) {
-    console.error("No suitable words found under these constraints!");
-    document.getElementById("status").textContent = "No words available for these rules!";
+  if (candidateWords.length === 0) {
+    console.error(`No suitable words found of length ${targetLength}!`);
+    document.getElementById("status").textContent =
+      `No words of length ${targetLength} available under these rules.`;
     return;
   }
 
-  const chosenWord = sevenLetterWords[Math.floor(Math.random() * sevenLetterWords.length)];
+  const chosenWord = candidateWords[Math.floor(Math.random() * candidateWords.length)];
   let lettersArray = [...chosenWord];
-  const lastLetter = lettersArray.pop();
+  const lastLetter = lettersArray.pop(); // keep last letter fixed
 
   for (let i = lettersArray.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -68,11 +75,9 @@ function generateTiles() {
 
   displayTiles();
 
-  // Clear anagrams list if it exists
   const anagramsDiv = document.getElementById("anagramsList");
   if (anagramsDiv) anagramsDiv.innerHTML = "";
 
-  // Start stopwatch
   startTimer();
 }
 
@@ -94,16 +99,6 @@ function startTimer() {
   secondsElapsed = 0;
 
   let timerEl = document.getElementById("timer");
-  if (!timerEl) {
-    timerEl = document.createElement("div");
-    timerEl.id = "timer";
-    timerEl.style.fontSize = "20px";
-    timerEl.style.fontWeight = "bold";
-    timerEl.style.color = "black";
-    timerEl.style.margin = "8px 0";
-    document.body.insertBefore(timerEl, document.getElementById("tiles"));
-  }
-
   timerEl.textContent = `Time: 0s`;
 
   timerInterval = setInterval(() => {
@@ -125,14 +120,14 @@ function canFormWord(word) {
 
 // Calculate points
 function calculatePoints(length) {
-  switch(length) {
-    case 3: return 100;
-    case 4: return 400;
-    case 5: return 1200;
-    case 6: return 2000;
-    case 7: return 3000;
-    default: return 0;
-  }
+  if (length < 3) return 0;
+
+  if (length === 3) return 100;
+  if (length === 4) return 400;
+  if (length === 5) return 1200;
+
+  // from 6 upwards, it's 1000 increments
+  return (length - 3) * 1000;
 }
 
 // Handle word submission
@@ -178,8 +173,20 @@ document.getElementById("wordForm").addEventListener("submit", e => {
   li.textContent = `${word} (+${points} pts)`;
   li.style.fontSize = "18px";
   li.style.fontWeight = "bold";
-  foundList.appendChild(li);
 
+  // Insert in score-sorted order
+  let inserted = false;
+  for (let existingLi of foundList.children) {
+    const existingPoints = parseInt(existingLi.textContent.match(/\+(\d+) pts/)[1], 10);
+    if (points > existingPoints) {
+      foundList.insertBefore(li, existingLi);
+      inserted = true;
+      break;
+    }
+  }
+  if (!inserted) foundList.appendChild(li);
+
+  // Update score
   score += points;
   const scoreEl = document.getElementById("score");
   scoreEl.textContent = `Score: ${score}`;
@@ -224,7 +231,14 @@ showAnagramsBtn.addEventListener("click", () => {
       tempTiles.splice(index, 1);
     }
     return true;
-  }).sort((a,b) => b.length - a.length); // longest -> shortest
+  });
+
+  // sort by points (highest first), then alphabetically
+  validWords.sort((a, b) => {
+    const scoreDiff = calculatePoints(b.length) - calculatePoints(a.length);
+    if (scoreDiff !== 0) return scoreDiff;
+    return a.localeCompare(b);
+  });
 
   if (validWords.length === 0) {
     anagramsDiv.textContent = "No valid anagrams found.";
@@ -233,7 +247,7 @@ showAnagramsBtn.addEventListener("click", () => {
 
   validWords.forEach(word => {
     const wEl = document.createElement("div");
-    wEl.textContent = word;
+    wEl.textContent = `${word} (+${calculatePoints(word.length)} pts)`;
     wEl.style.fontSize = "18px";
     wEl.style.fontWeight = "bold";
     anagramsDiv.appendChild(wEl);
@@ -276,3 +290,12 @@ document.addEventListener("keyup", (e) => {
   if (e.key === "Tab") tabPressed = false;
 });
 
+// New Game button listener
+document.getElementById("newGameBtn").addEventListener("click", () => {
+  score = 0;
+  document.getElementById("score").textContent = `Score: ${score}`;
+  document.getElementById("foundWords").innerHTML = "";
+  document.getElementById("message").textContent = "";
+  document.getElementById("anagramsList").innerHTML = "";
+  generateTiles();
+});
