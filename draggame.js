@@ -122,4 +122,10 @@ document.getElementById("submitWordBtn").addEventListener("click", () => {
 });
 // ---------- Reset Board ----------
 document.getElementById("resetBoardBtn").addEventListener("click", generateTiles16);
+
+document.addEventListener("DOMContentLoaded", () => {
+const btn = document.getElementById("dragDropBtn");
+if (btn) btn.addEventListener("click", showDragDrop);
+
+});
 })();
