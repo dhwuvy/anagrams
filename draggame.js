@@ -8,6 +8,21 @@ let board = Array(rows * cols).fill(null); // 72-cell board
 let scoreDrag = 0;
 let draggedIndex = null;
 
+// ---------- Timer ----------
+let timerInterval = null;
+let secondsElapsed = 0;
+
+function startTimer() {
+  clearInterval(timerInterval);
+  secondsElapsed = 0;
+  const timerEl = document.getElementById("timer");
+  if (timerEl) timerEl.textContent = "Time: 0s";
+  timerInterval = setInterval(() => {
+    secondsElapsed++;
+    if (timerEl) timerEl.textContent = `Time: ${secondsElapsed}s`;
+  }, 1000);
+}
+
 // Shared dictionary
 let dictionary = null;
 fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
@@ -40,6 +55,8 @@ function showDragDrop() {
   // Hide the Submit Word button in drag-and-drop mode
   const submitBtn = document.getElementById("submitWordBtn");
   if (submitBtn) submitBtn.style.display = "none";
+
+  startTimer(); // start the timer
 }
 
 // Attach button listeners
@@ -50,7 +67,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const classicBtn = document.querySelector("button[onclick='showClassic()']");
   if (classicBtn) classicBtn.addEventListener("click", showClassic);
 
-  // New Game button in Classic
   const newGameBtn = document.getElementById("newGameBtn");
   if (newGameBtn) newGameBtn.addEventListener("click", () => {
     if (window.generateTiles) window.generateTiles();
@@ -68,9 +84,47 @@ function generateTiles16() {
   const positions = Array.from({length: rows*cols}, (_, i) => i);
   shuffleArray(positions);
 
+  const usedPositions = new Set();
+  let mergesCreated = 0;
+
+  // Create 5 merged tiles (random horizontal or vertical)
+  while (mergesCreated < 5) {
+    const horizontal = Math.random() < 0.5;
+    const start = positions[Math.floor(Math.random() * positions.length)];
+    const r = Math.floor(start / cols);
+    const c = start % cols;
+
+    if (horizontal) {
+      if (c + 1 >= cols || usedPositions.has(start) || usedPositions.has(start + 1)) continue;
+      const letter1 = letters[Math.floor(Math.random() * letters.length)];
+      let letter2;
+      do { letter2 = letters[Math.floor(Math.random() * letters.length)]; } while (letter2 === letter1);
+
+      board[start] = letter1;
+      board[start + 1] = letter2;
+      usedPositions.add(start);
+      usedPositions.add(start + 1);
+    } else {
+      if (r + 1 >= rows || usedPositions.has(start) || usedPositions.has(start + cols)) continue;
+      const letter1 = letters[Math.floor(Math.random() * letters.length)];
+      let letter2;
+      do { letter2 = letters[Math.floor(Math.random() * letters.length)]; } while (letter2 === letter1);
+
+      board[start] = letter1;
+      board[start + cols] = letter2;
+      usedPositions.add(start);
+      usedPositions.add(start + cols);
+    }
+    mergesCreated++;
+  }
+
+  // Fill remaining tiles as 1x1
   for (let i = 0; i < 16; i++) {
-    const randomLetter = letters[Math.floor(Math.random() * letters.length)];
-    board[positions[i]] = randomLetter;
+    const pos = positions[i];
+    if (!usedPositions.has(pos)) {
+      board[pos] = letters[Math.floor(Math.random() * letters.length)];
+      usedPositions.add(pos);
+    }
   }
 
   scoreDrag = 0;
@@ -84,19 +138,37 @@ function generateTiles16() {
 function renderBoard() {
   const boardEl = document.getElementById("tileBoard");
   boardEl.innerHTML = "";
+  const rendered = new Set();
 
-  board.forEach((letter, index) => {
+  for (let index = 0; index < board.length; index++) {
+    if (rendered.has(index)) continue;
+
+    const letter = board[index];
     const cell = document.createElement("div");
     cell.className = "cell";
 
     if (letter) {
+      let width = 1, height = 1;
+
+      // Horizontal merge
+      if (index % cols < cols - 1 && board[index + 1] && !rendered.has(index + 1)) {
+        width = 2;
+        rendered.add(index + 1);
+      }
+      // Vertical merge
+      else if (Math.floor(index / cols) < rows - 1 && board[index + cols] && !rendered.has(index + cols)) {
+        height = 2;
+        rendered.add(index + cols);
+      }
+
       const tile = document.createElement("div");
       tile.className = "drag-tile";
       tile.textContent = letter;
       tile.dataset.index = index;
       tile.draggable = true;
+      tile.style.gridColumnEnd = `span ${width}`;
+      tile.style.gridRowEnd = `span ${height}`;
 
-      // Drag events
       tile.addEventListener("dragstart", e => {
         draggedIndex = index;
         e.dataTransfer.setDragImage(new Image(), 0, 0);
@@ -105,19 +177,9 @@ function renderBoard() {
       cell.appendChild(tile);
     }
 
-    // Drop events for the cell
-    cell.addEventListener("dragover", e => e.preventDefault());
-    cell.addEventListener("drop", e => {
-      if (draggedIndex === null) return;
-      [board[draggedIndex], board[index]] = [board[index], board[draggedIndex]];
-      draggedIndex = null;
-      renderBoard();
-
-      checkBoardForWords(); // automatically check for new words
-    });
-
+    rendered.add(index);
     boardEl.appendChild(cell);
-  });
+  }
 }
 
 // ---------- Points ----------
@@ -137,26 +199,20 @@ function calculatePoints(length) {
 // ---------- Automatic Word Checking ----------
 function checkBoardForWords() {
   if (!dictionary) return;
-
   const foundList = document.getElementById("foundWordsDrag");
   let newWordsFound = [];
 
   function checkLine(line) {
     let start = 0;
     while (start < line.length) {
-      if (!line[start]) { 
-        start++;
-        continue;
-      }
-
+      if (!line[start]) { start++; continue; }
       let end = start;
       while (end < line.length && line[end]) end++;
-
       const segment = line.slice(start, end);
-      const word = segment.join(""); // full segment only
+      const word = segment.join("");
 
-      // Only award points if the entire segment is a valid word
-      if (dictionary.has(word) &&
+      if (word.length >= 3 &&
+          dictionary.has(word) &&
           ![...foundList.children].some(div => div.textContent.split(' ')[0] === word) &&
           !newWordsFound.includes(word)) {
         newWordsFound.push(word);
@@ -166,22 +222,16 @@ function checkBoardForWords() {
     }
   }
 
-  // Horizontal check
-  for (let r = 0; r < rows; r++) {
-    const row = board.slice(r * cols, r * cols + cols);
-    checkLine(row);
-  }
-
-  // Vertical check
+  // Horizontal
+  for (let r = 0; r < rows; r++) checkLine(board.slice(r*cols, r*cols + cols));
+  // Vertical
   for (let c = 0; c < cols; c++) {
     const col = [];
-    for (let r = 0; r < rows; r++) {
-      col.push(board[r * cols + c]);
-    }
+    for (let r = 0; r < rows; r++) col.push(board[r*cols + c]);
     checkLine(col);
   }
 
-  // Award points for newly found words
+  // Award points and sort
   newWordsFound.forEach(word => {
     const points = calculatePoints(word.length);
     scoreDrag += points;
@@ -190,10 +240,12 @@ function checkBoardForWords() {
     foundList.appendChild(wordDiv);
   });
 
-  // Update score if any new words found
-  if (newWordsFound.length > 0) {
-    document.getElementById("scoreDrag").textContent = `Score: ${scoreDrag}`;
-  }
+  const wordDivs = Array.from(foundList.children);
+  wordDivs.sort((a, b) => parseInt(b.textContent.split('(+')[1]) - parseInt(a.textContent.split('(+')[1]));
+  foundList.innerHTML = "";
+  wordDivs.forEach(div => foundList.appendChild(div));
+
+  if (newWordsFound.length > 0) document.getElementById("scoreDrag").textContent = `Score: ${scoreDrag}`;
 }
 
 // ---------- Reset Board ----------
@@ -208,4 +260,5 @@ function shuffleArray(arr) {
 }
 
 })();
+
 
