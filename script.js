@@ -39,6 +39,11 @@ function generateTiles() {
   const lengthInput = document.getElementById("wordLength");
   const targetLength = parseInt(lengthInput.value, 10);
 
+  if (isNaN(targetLength) || targetLength < 3) {
+    targetLength = 3;
+    lengthInput.value = 3; // update the input box too
+  }
+
   const candidateWords = [...dictionary].filter(word => {
     if (word.length !== targetLength) return false;
 
