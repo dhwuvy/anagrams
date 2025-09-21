@@ -127,3 +127,45 @@ button {
   #wordInput { width: 220px; font-size: 1.5rem; }
   button, #showAnagramsBtn { font-size: 1.4rem; padding: 8px 14px; }
 }
+
+/* ================= Drag & Drop Game ================= */
+
+/* Board container */
+#tileBoard {
+  display: grid;
+  grid-template-columns: repeat(4, 80px);
+  grid-gap: 12px;
+  width: 340px;
+  margin: 20px auto;
+}
+
+/* Current word being formed */
+#currentWord {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+/* Found words list for drag & drop game */
+#foundWordsDrag {
+  margin-top: 16px;
+  font-size: 1.6rem;
+  font-weight: bold;
+}
+
+/* Score display for drag & drop */
+#scoreDrag {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* Buttons for drag & drop game */
+#resetBoardBtn,
+#submitWordBtn {
+  padding: 10px 18px;
+  font-size: 1.6rem;
+  cursor: pointer;
+  border-radius: 8px;
+  margin: 6px;
+}
