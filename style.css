@@ -133,8 +133,8 @@ button {
 /* Board container - 8x9 visible grid */
 #tileBoard {
   display: grid;
-  grid-template-columns: repeat(9, 80px);
-  grid-template-rows: repeat(8, 80px);
+  grid-template-columns: repeat(8, 80px);
+  grid-template-rows: repeat(9, 80px);
   gap: 12px;
   width: max-content;
   margin: 20px auto;
