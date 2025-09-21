@@ -135,35 +135,32 @@ document.getElementById("submitWordBtn").addEventListener("click", () => {
   const foundList = document.getElementById("foundWordsDrag");
   let newWordsFound = [];
 
-  function checkLine(line) {
-    let start = 0;
-    while (start < line.length) {
-      if (!line[start]) { // blank cell
-        start++;
-        continue;
-      }
-
-      // find end of this contiguous letter segment
-      let end = start;
-      while (end < line.length && line[end]) end++;
-
-      const segment = line.slice(start, end);
-      const n = segment.length;
-
-      for (let len = 3; len <= Math.min(9, n); len++) {
-        for (let i = 0; i <= n - len; i++) {
-          const word = segment.slice(i, i + len).join("");
-          if (dictionary.has(word) &&
-              ![...foundList.children].some(div => div.textContent.split(' ')[0] === word) &&
-              !newWordsFound.includes(word)) {
-            newWordsFound.push(word);
-          }
-        }
-      }
-
-      start = end; // move past this segment
+function checkLine(line) {
+  let start = 0;
+  while (start < line.length) {
+    if (!line[start]) { // skip blanks
+      start++;
+      continue;
     }
+
+    // find the end of this contiguous letter segment
+    let end = start;
+    while (end < line.length && line[end]) end++;
+
+    const segment = line.slice(start, end);
+    const word = segment.join(""); // full segment only
+
+    // Only award points if the entire segment is a valid word
+    if (dictionary.has(word) &&
+        ![...foundList.children].some(div => div.textContent.split(' ')[0] === word) &&
+        !newWordsFound.includes(word)) {
+      newWordsFound.push(word);
+    }
+
+    start = end; // move to the next segment
   }
+}
+
 
   // ---------- Horizontal ----------
   for (let r = 0; r < rows; r++) {
