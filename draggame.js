@@ -28,13 +28,27 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
 function showClassic() {
   document.getElementById("classicGame").style.display = "block";
   document.getElementById("dragDropGame").style.display = "none";
+  // Show the anagrams/classic section
+  if (window.showAnagramsUI) window.showAnagramsUI();
 }
 
 function showDragDrop() {
   document.getElementById("classicGame").style.display = "none";
   document.getElementById("dragDropGame").style.display = "block";
+  // Hide the anagrams/classic section
+  if (window.hideAnagramsUI) window.hideAnagramsUI();
   generateTiles16();
 }
+
+// Attach button listeners
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("dragDropBtn");
+  if (btn) btn.addEventListener("click", showDragDrop);
+
+  const classicBtn = document.querySelector("button[onclick='showClassic()']");
+  if (classicBtn) classicBtn.addEventListener("click", showClassic);
+});
+
 
 // ---------- Drag & Drop Board ----------
 function generateTiles16() {
