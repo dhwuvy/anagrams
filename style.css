@@ -128,6 +128,7 @@ button {
 
 /* ================= Drag & Drop Game ================= */
 
+/* Board container - 8x9 visible grid */
 #tileBoard {
   display: grid;
   grid-template-columns: repeat(8, 80px);
@@ -137,16 +138,11 @@ button {
   margin: 20px auto;
   border: 2px solid #d4af37;
   border-radius: 12px;
-  background: #fdf5e6;
+  background: #fdf5e6; /* light background to see board */
   position: relative;
 }
 
-.cell {
-  width: 80px;
-  height: 80px;
-  position: relative;
-}
-
+/* Drag & Drop Tiles */
 .drag-tile {
   background: #ffeb99;
   border: 3px solid #d4af37;
@@ -159,7 +155,8 @@ button {
   box-shadow: 3px 3px 6px rgba(0,0,0,0.3);
   cursor: grab;
   user-select: none;
-  position: absolute; /* allow precise placement on grid */
+  width: 80px;
+  height: 80px;
 }
 
 .drag-tile:active {
