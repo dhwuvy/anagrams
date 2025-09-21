@@ -5,6 +5,7 @@ const letters = "ABCDEFGHIKLMNOPRSTUVWY";
 const rows = 9;
 const cols = 8;
 let board = Array(rows * cols).fill(null); // 72-cell board
+let tilesInfo = {}; // Track tile size for merged tiles
 let scoreDrag = 0;
 let draggedIndex = null;
 
@@ -81,6 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // ---------- Drag & Drop Board ----------
 function generateTiles16() {
   board.fill(null);
+  tilesInfo = {};
   const positions = Array.from({length: rows*cols}, (_, i) => i);
   shuffleArray(positions);
 
@@ -102,6 +104,7 @@ function generateTiles16() {
 
       board[start] = letter1;
       board[start + 1] = letter2;
+      tilesInfo[start] = {width: 2, height: 1, indices: [start, start + 1]};
       usedPositions.add(start);
       usedPositions.add(start + 1);
     } else {
@@ -112,6 +115,7 @@ function generateTiles16() {
 
       board[start] = letter1;
       board[start + cols] = letter2;
+      tilesInfo[start] = {width: 1, height: 2, indices: [start, start + cols]};
       usedPositions.add(start);
       usedPositions.add(start + cols);
     }
@@ -119,11 +123,14 @@ function generateTiles16() {
   }
 
   // Fill remaining tiles as 1x1
-  for (let i = 0; i < 16; i++) {
+  let singleCount = 0;
+  for (let i = 0; i < 16 && singleCount < 16 - 5; i++) {
     const pos = positions[i];
     if (!usedPositions.has(pos)) {
       board[pos] = letters[Math.floor(Math.random() * letters.length)];
+      tilesInfo[pos] = {width: 1, height: 1, indices: [pos]};
       usedPositions.add(pos);
+      singleCount++;
     }
   }
 
@@ -142,42 +149,48 @@ function renderBoard() {
 
   for (let index = 0; index < board.length; index++) {
     if (rendered.has(index)) continue;
-
     const letter = board[index];
+    if (!letter) continue;
+
     const cell = document.createElement("div");
     cell.className = "cell";
 
-    if (letter) {
-      let width = 1, height = 1;
+    const info = tilesInfo[index] || {width:1,height:1,indices:[index]};
+    info.indices.forEach(i => rendered.add(i));
 
-      // Horizontal merge
-      if (index % cols < cols - 1 && board[index + 1] && !rendered.has(index + 1)) {
-        width = 2;
-        rendered.add(index + 1);
-      }
-      // Vertical merge
-      else if (Math.floor(index / cols) < rows - 1 && board[index + cols] && !rendered.has(index + cols)) {
-        height = 2;
-        rendered.add(index + cols);
-      }
+    const tile = document.createElement("div");
+    tile.className = "drag-tile";
+    tile.textContent = letter;
+    tile.dataset.index = index;
+    tile.draggable = true;
+    tile.style.gridColumnEnd = `span ${info.width}`;
+    tile.style.gridRowEnd = `span ${info.height}`;
 
-      const tile = document.createElement("div");
-      tile.className = "drag-tile";
-      tile.textContent = letter;
-      tile.dataset.index = index;
-      tile.draggable = true;
-      tile.style.gridColumnEnd = `span ${width}`;
-      tile.style.gridRowEnd = `span ${height}`;
+    tile.addEventListener("dragstart", e => {
+      draggedIndex = index;
+      e.dataTransfer.setDragImage(new Image(), 0, 0);
+    });
 
-      tile.addEventListener("dragstart", e => {
-        draggedIndex = index;
-        e.dataTransfer.setDragImage(new Image(), 0, 0);
-      });
+    tile.addEventListener("dragover", e => e.preventDefault());
+    tile.addEventListener("drop", e => {
+      if (draggedIndex === null) return;
 
-      cell.appendChild(tile);
-    }
+      const draggedTile = tilesInfo[draggedIndex] || {indices:[draggedIndex]};
+      const targetTile = tilesInfo[index] || {indices:[index]};
 
-    rendered.add(index);
+      // Swap letters in board
+      const draggedLetters = draggedTile.indices.map(i => board[i]);
+      const targetLetters = targetTile.indices.map(i => board[i]);
+
+      draggedTile.indices.forEach((i,j)=>board[i]=targetLetters[j] || null);
+      targetTile.indices.forEach((i,j)=>board[i]=draggedLetters[j] || null);
+
+      draggedIndex = null;
+      renderBoard();
+      checkBoardForWords();
+    });
+
+    cell.appendChild(tile);
     boardEl.appendChild(cell);
   }
 }
@@ -217,7 +230,6 @@ function checkBoardForWords() {
           !newWordsFound.includes(word)) {
         newWordsFound.push(word);
       }
-
       start = end;
     }
   }
@@ -241,11 +253,11 @@ function checkBoardForWords() {
   });
 
   const wordDivs = Array.from(foundList.children);
-  wordDivs.sort((a, b) => parseInt(b.textContent.split('(+')[1]) - parseInt(a.textContent.split('(+')[1]));
+  wordDivs.sort((a,b)=>parseInt(b.textContent.split('(+')[1])-parseInt(a.textContent.split('(+')[1]));
   foundList.innerHTML = "";
-  wordDivs.forEach(div => foundList.appendChild(div));
+  wordDivs.forEach(div=>foundList.appendChild(div));
 
-  if (newWordsFound.length > 0) document.getElementById("scoreDrag").textContent = `Score: ${scoreDrag}`;
+  if (newWordsFound.length>0) document.getElementById("scoreDrag").textContent = `Score: ${scoreDrag}`;
 }
 
 // ---------- Reset Board ----------
@@ -253,12 +265,13 @@ document.getElementById("resetBoardBtn").addEventListener("click", generateTiles
 
 // ---------- Utility ----------
 function shuffleArray(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+  for (let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
   }
 }
 
 })();
+
 
 
