@@ -132,17 +132,26 @@ button {
 
 /* Board container - 8x9 visible grid */
 #tileBoard {
-  position: relative; /* allow absolute positioning of tiles */
-  width: 740px;       /* 9 columns × 80px + 8 gaps × 12px */
-  height: 656px;      /* 8 rows × 80px + 7 gaps × 12px */
+  display: grid;
+  grid-template-columns: repeat(9, 80px);
+  grid-template-rows: repeat(8, 80px);
+  gap: 12px;
+  width: max-content;
   margin: 20px auto;
   border: 2px solid #d4af37;
   border-radius: 12px;
   background: #fdf5e6; /* light background to see board */
 }
 
-/* Tiles */
-.tile {
+/* Cells for 72 discrete positions */
+.cell {
+  width: 80px;
+  height: 80px;
+  position: relative;
+}
+
+/* Drag & Drop Tiles */
+.drag-tile {
   width: 80px;
   height: 80px;
   background: #ffeb99;
@@ -154,15 +163,13 @@ button {
   font-size: 36px;
   font-weight: bold;
   box-shadow: 3px 3px 6px rgba(0,0,0,0.3);
-
-  position: absolute;  /* allow free drag */
   cursor: grab;
   user-select: none;
 }
 
-.tile:active {
+.drag-tile:active {
   cursor: grabbing;
-  z-index: 10;  /* keep dragged tile on top */
+  z-index: 10;
 }
 
 /* Current word */
