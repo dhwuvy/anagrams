@@ -2,7 +2,9 @@
 
 // ================= Drag & Drop Game =================
 const letters = "ABCDEFGHIKLMNOPRSTUVWY";
-let tiles = [];
+const rows = 8;
+const cols = 9;
+let board = Array(rows * cols).fill(null); // 72-cell board
 let currentWord = "";
 let scoreDrag = 0;
 let draggedIndex = null;
@@ -36,55 +38,63 @@ function showDragDrop() {
 
 // ---------- Drag & Drop Board ----------
 function generateTiles16() {
-  tiles = [];
+  board.fill(null); // clear board
+  const positions = Array.from({length: rows*cols}, (_, i) => i);
+  shuffleArray(positions); // shuffle positions
+
   for (let i = 0; i < 16; i++) {
     const randomLetter = letters[Math.floor(Math.random() * letters.length)];
-    tiles.push(randomLetter);
+    board[positions[i]] = randomLetter;
   }
-  displayTileBoard();
+
   currentWord = "";
+  scoreDrag = 0;
   document.getElementById("currentWord").textContent = "";
   document.getElementById("foundWordsDrag").innerHTML = "";
-  scoreDrag = 0;
   document.getElementById("scoreDrag").textContent = `Score: ${scoreDrag}`;
+
+  renderBoard();
 }
 
-function displayTileBoard() {
-  const board = document.getElementById("tileBoard");
-  board.innerHTML = "";
-  const boardWidth = board.clientWidth;
-  const boardHeight = board.clientHeight;
+function renderBoard() {
+  const boardEl = document.getElementById("tileBoard");
+  boardEl.innerHTML = "";
 
-  tiles.forEach((letter, index) => {
-    const tile = document.createElement("div");
-    tile.className = "tile";
-    tile.textContent = letter;
-    tile.draggable = true;
+  board.forEach((letter, index) => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
 
-    // Random initial position inside board
-    tile.style.position = "absolute";
-    tile.style.left = `${Math.random() * (boardWidth - 50)}px`;
-    tile.style.top = `${Math.random() * (boardHeight - 50)}px`;
+    if (letter) {
+      const tile = document.createElement("div");
+      tile.className = "drag-tile";
+      tile.textContent = letter;
+      tile.dataset.index = index;
+      tile.draggable = true;
 
-    // Drag functionality
-    tile.addEventListener("dragstart", e => {
-      draggedIndex = index;
-      e.dataTransfer.setDragImage(new Image(), 0, 0); // hide default ghost
+      // Drag events
+      tile.addEventListener("dragstart", e => {
+        draggedIndex = index;
+        e.dataTransfer.setDragImage(new Image(), 0, 0); // hide ghost
+      });
+
+      tile.addEventListener("click", () => {
+        currentWord += tile.textContent;
+        document.getElementById("currentWord").textContent = currentWord;
+      });
+
+      cell.appendChild(tile);
+    }
+
+    // Drop events for the cell
+    cell.addEventListener("dragover", e => e.preventDefault());
+    cell.addEventListener("drop", e => {
+      if (draggedIndex === null) return;
+      [board[draggedIndex], board[index]] = [board[index], board[draggedIndex]];
+      draggedIndex = null;
+      renderBoard();
     });
 
-    tile.addEventListener("dragend", e => {
-      const rect = board.getBoundingClientRect();
-      tile.style.left = `${e.clientX - rect.left - 25}px`;
-      tile.style.top = `${e.clientY - rect.top - 25}px`;
-    });
-
-    // Click to add letter
-    tile.addEventListener("click", () => {
-      currentWord += tile.textContent;
-      document.getElementById("currentWord").textContent = currentWord;
-    });
-
-    board.appendChild(tile);
+    boardEl.appendChild(cell);
   });
 }
 
@@ -138,5 +148,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btn) btn.addEventListener("click", showDragDrop);
 });
 
-})();
+// ---------- Utility ----------
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
 
+})();
