@@ -1,3 +1,5 @@
+(() => {
+
 // ================= Drag & Drop Game =================
 const letters = "ABCDEFGHIKLMNOPRSTUVWY";
 let tiles = [];
@@ -118,8 +120,6 @@ document.getElementById("submitWordBtn").addEventListener("click", () => {
   currentWord = "";
   document.getElementById("currentWord").textContent = "";
 });
-
 // ---------- Reset Board ----------
-document.getElementById("resetBoardBtn").addEventListener("click", () => {
-  generateTiles16();
-});
+document.getElementById("resetBoardBtn").addEventListener("click", generateTiles16);
+})();
