@@ -7,17 +7,22 @@ let score = 0;
 let timerInterval = null;
 let secondsElapsed = 0;
 
-// Create a container for all anagrams-related UI
+// Mode flag
+let currentMode = "classic"; // "classic" or "drag"
+
+// -------------------
+// Anagrams UI Section
+// -------------------
 const anagramsSection = document.createElement("div");
 anagramsSection.id = "anagramsSection";
 document.body.appendChild(anagramsSection);
 
-// Status message
+// Status
 const statusDiv = document.createElement("div");
 statusDiv.id = "status";
 anagramsSection.appendChild(statusDiv);
 
-// Tiles container
+// Tiles
 const tilesDiv = document.createElement("div");
 tilesDiv.id = "tiles";
 anagramsSection.appendChild(tilesDiv);
@@ -27,7 +32,7 @@ const timerDiv = document.createElement("div");
 timerDiv.id = "timer";
 anagramsSection.appendChild(timerDiv);
 
-// Word input form
+// Word Form
 const wordForm = document.createElement("form");
 wordForm.id = "wordForm";
 wordForm.innerHTML = `
@@ -36,7 +41,7 @@ wordForm.innerHTML = `
 `;
 anagramsSection.appendChild(wordForm);
 
-// Message div
+// Message
 const messageDiv = document.createElement("div");
 messageDiv.id = "message";
 anagramsSection.appendChild(messageDiv);
@@ -52,7 +57,7 @@ const foundWordsDiv = document.createElement("ul");
 foundWordsDiv.id = "foundWords";
 anagramsSection.appendChild(foundWordsDiv);
 
-// Show anagrams button
+// Show Anagrams button
 const showAnagramsBtn = document.createElement("button");
 showAnagramsBtn.textContent = "Show Anagrams";
 showAnagramsBtn.style.marginTop = "10px";
@@ -70,7 +75,7 @@ anagramsDiv.style.marginLeft = "auto";
 anagramsDiv.style.marginRight = "auto";
 anagramsSection.appendChild(anagramsDiv);
 
-// Custom letters input & button
+// Custom letters
 const customDiv = document.createElement("div");
 customDiv.style.marginTop = "10px";
 customDiv.style.textAlign = "center";
@@ -80,7 +85,9 @@ customDiv.innerHTML = `
 `;
 anagramsSection.appendChild(customDiv);
 
-// Load dictionary
+// -------------------
+// Fetch Dictionary
+// -------------------
 fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
   .then(response => {
     if (!response.ok) throw new Error("Failed to fetch dictionary");
@@ -104,7 +111,9 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
     statusDiv.textContent = "Failed to load dictionary!";
   });
 
-// Generate N random letters with last letter fixed
+// -------------------
+// Generate Tiles
+// -------------------
 function generateTiles() {
   if (!dictionary) return;
 
@@ -132,7 +141,7 @@ function generateTiles() {
     return;
   }
 
-  const chosenWord = candidateWords[Math.floor(Math.random() * candidateWords.length)];
+  const chosenWord = candidateWords[Math.floor(Math.random() * (candidateWords.length))];
   let lettersArray = [...chosenWord];
   const lastLetter = lettersArray.pop();
 
@@ -148,7 +157,7 @@ function generateTiles() {
   startTimer();
 }
 
-// Display tiles
+// Display Tiles
 function displayTiles() {
   tilesDiv.innerHTML = "";
   tiles.forEach(letter => {
@@ -170,7 +179,9 @@ function startTimer() {
   }, 1000);
 }
 
-// Word submission logic (unchanged)
+// -------------------
+// Word submission
+// -------------------
 wordForm.addEventListener("submit", e => {
   e.preventDefault();
   const input = document.getElementById("wordInput");
@@ -180,12 +191,14 @@ wordForm.addEventListener("submit", e => {
     input.value = "";
     return;
   }
+
   const foundList = document.getElementById("foundWords");
   if ([...foundList.children].some(li => li.textContent.split(' ')[0] === word)) {
     messageDiv.textContent = "Word already used!";
     input.value = "";
     return;
   }
+
   const points = calculatePoints(word.length);
   const li = document.createElement("li");
   li.textContent = `${word} (+${points} pts)`;
@@ -210,19 +223,42 @@ wordForm.addEventListener("submit", e => {
   input.value = "";
 });
 
-// Hide/show anagrams section functions
-function hideAnagramsUI() {
-  if (anagramsSection) anagramsSection.style.display = "none";
-}
-function showAnagramsUI() {
-  if (anagramsSection) anagramsSection.style.display = "block";
+// -------------------
+// Points calculation
+// -------------------
+function calculatePoints(length) {
+  if (length < 3) return 0;
+  if (length === 3) return 100;
+  if (length === 4) return 400;
+  if (length === 5) return 1200;
+  if (length === 6) return 2000;
+  if (length === 7) return 3000;
+  if (length === 8) return 4000;
+  if (length === 9) return 5000;
+  if (length === 10) return 6000;
+  if (length === 11) return 7000;
+  if (length === 12) return 8000;
+  if (length === 13) return 9000;
+  if (length === 14) return 10000;
+  if (length === 15) return 11000;
 }
 
-// Export functions to global for drag & drop JS to call
-window.hideAnagramsUI = hideAnagramsUI;
-window.showAnagramsUI = showAnagramsUI;
+// -------------------
+// Can form word
+// -------------------
+function canFormWord(word) {
+  let tempTiles = [...tiles];
+  for (let char of word.toUpperCase()) {
+    const idx = tempTiles.indexOf(char);
+    if (idx === -1) return false;
+    tempTiles.splice(idx, 1);
+  }
+  return true;
+}
 
-// Custom letters button
+// -------------------
+// Custom letters
+// -------------------
 document.getElementById("customLettersBtn").addEventListener("click", () => {
   const input = document.getElementById("customLettersInput");
   let lettersInput = input.value.trim().toUpperCase();
@@ -265,7 +301,9 @@ document.getElementById("customLettersBtn").addEventListener("click", () => {
   startTimer();
 });
 
-// Show anagrams button
+// -------------------
+// Show Anagrams
+// -------------------
 showAnagramsBtn.addEventListener("click", () => {
   anagramsDiv.innerHTML = "";
   if (!dictionary) return;
@@ -301,13 +339,13 @@ showAnagramsBtn.addEventListener("click", () => {
   });
 });
 
-// Tab + Enter reset (unchanged)
+// -------------------
+// Tab + Enter reset
+// -------------------
 let tabPressed = false;
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Tab") {
-    tabPressed = true;
-    e.preventDefault();
-  } else if (e.key === "Enter" && tabPressed) {
+  if (e.key === "Tab") { tabPressed = true; e.preventDefault(); }
+  else if (e.key === "Enter" && tabPressed) {
     e.preventDefault();
     generateTiles();
     score = 0;
@@ -321,3 +359,11 @@ document.addEventListener("keydown", (e) => {
   }
 });
 document.addEventListener("keyup", (e) => { if (e.key === "Tab") tabPressed = false; });
+
+// -------------------
+// Show/Hide for Mode Toggle
+// -------------------
+function hideAnagramsUI() { anagramsSection.style.display = "none"; }
+function showAnagramsUI() { anagramsSection.style.display = "block"; }
+window.hideAnagramsUI = hideAnagramsUI;
+window.showAnagramsUI = showAnagramsUI;
