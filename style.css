@@ -130,37 +130,63 @@ button {
 
 /* ================= Drag & Drop Game ================= */
 
-/* Board container */
+/* Board container - 8x9 visible grid */
 #tileBoard {
-  display: grid;
-  grid-template-columns: repeat(4, 80px);
-  grid-gap: 12px;
-  width: 340px;
+  position: relative; /* allow absolute positioning of tiles */
+  width: 740px;       /* 9 columns × 80px + 8 gaps × 12px */
+  height: 656px;      /* 8 rows × 80px + 7 gaps × 12px */
   margin: 20px auto;
+  border: 2px solid #d4af37;
+  border-radius: 12px;
+  background: #fdf5e6; /* light background to see board */
 }
 
-/* Current word being formed */
+/* Tiles */
+.tile {
+  width: 80px;
+  height: 80px;
+  background: #ffeb99;
+  border: 3px solid #d4af37;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 36px;
+  font-weight: bold;
+  box-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+
+  position: absolute;  /* allow free drag */
+  cursor: grab;
+  user-select: none;
+}
+
+.tile:active {
+  cursor: grabbing;
+  z-index: 10;  /* keep dragged tile on top */
+}
+
+/* Current word */
 #currentWord {
   font-size: 2rem;
   font-weight: bold;
   margin-top: 20px;
 }
 
-/* Found words list for drag & drop game */
+/* Found words list */
 #foundWordsDrag {
   margin-top: 16px;
   font-size: 1.6rem;
   font-weight: bold;
 }
 
-/* Score display for drag & drop */
+/* Score display */
 #scoreDrag {
   font-size: 2rem;
   font-weight: bold;
   margin-top: 10px;
 }
 
-/* Buttons for drag & drop game */
+/* Buttons */
 #resetBoardBtn,
 #submitWordBtn {
   padding: 10px 18px;
