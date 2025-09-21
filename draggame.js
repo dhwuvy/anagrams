@@ -15,11 +15,10 @@ let secondsElapsed = 0;
 function startTimer() {
   clearInterval(timerInterval);
   secondsElapsed = 0;
-  const timerEl = document.getElementById("timer");
-  if (timerEl) timerEl.textContent = "Time: 0s";
+  document.getElementById("timer").textContent = "Time: 0s";
   timerInterval = setInterval(() => {
     secondsElapsed++;
-    if (timerEl) timerEl.textContent = `Time: ${secondsElapsed}s`;
+    document.getElementById("timer").textContent = `Time: ${secondsElapsed}s`;
   }, 1000);
 }
 
@@ -33,6 +32,7 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
       .map(w => w.trim().toUpperCase())
       .filter(w => /^[A-Z]+$/.test(w));
     dictionary = new Set(words);
+
     const status = document.getElementById("status");
     if (status) status.textContent = "Dictionary loaded! Start playing!";
   })
@@ -50,18 +50,23 @@ function showDragDrop() {
   document.getElementById("dragDropGame").style.display = "block";
   if (window.hideAnagramsUI) window.hideAnagramsUI();
   generateTiles16();
+
+  // Hide the Submit Word button in drag-and-drop mode
   const submitBtn = document.getElementById("submitWordBtn");
   if (submitBtn) submitBtn.style.display = "none";
-  startTimer();
+
+  startTimer(); // start the timer for this game
 }
 
-// ---------- Attach button listeners ----------
+// Attach button listeners
 document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("dragDropBtn");
   if (btn) btn.addEventListener("click", showDragDrop);
+
   const classicBtn = document.querySelector("button[onclick='showClassic()']");
   if (classicBtn) classicBtn.addEventListener("click", showClassic);
 
+  // New Game button in Classic
   const newGameBtn = document.getElementById("newGameBtn");
   if (newGameBtn) newGameBtn.addEventListener("click", () => {
     if (window.generateTiles) window.generateTiles();
@@ -79,41 +84,16 @@ function generateTiles16() {
   const positions = Array.from({length: rows*cols}, (_, i) => i);
   shuffleArray(positions);
 
-  const usedPositions = new Set();
-  let mergesCreated = 0;
-
-  while (mergesCreated < 5) {
-    const horizontal = Math.random() < 0.5;
-    const start = positions[Math.floor(Math.random() * positions.length)];
-    const r = Math.floor(start / cols);
-    const c = start % cols;
-    if (horizontal) {
-      if (c + 1 >= cols || usedPositions.has(start) || usedPositions.has(start + 1)) continue;
-      const letter1 = letters[Math.floor(Math.random() * letters.length)];
-      let letter2;
-      do { letter2 = letters[Math.floor(Math.random() * letters.length)]; } while (letter2 === letter1);
-      board[start] = {letters: [letter1, letter2], w: 2, h:1};
-      usedPositions.add(start); usedPositions.add(start+1);
-    } else {
-      if (r + 1 >= rows || usedPositions.has(start) || usedPositions.has(start + cols)) continue;
-      const letter1 = letters[Math.floor(Math.random() * letters.length)];
-      let letter2;
-      do { letter2 = letters[Math.floor(Math.random() * letters.length)]; } while (letter2 === letter1);
-      board[start] = {letters: [letter1, letter2], w:1, h:2};
-      usedPositions.add(start); usedPositions.add(start+cols);
-    }
-    mergesCreated++;
-  }
-
-  for (let i=0;i<16;i++){
-    const pos = positions[i];
-    if (!usedPositions.has(pos)) board[pos] = {letters:[letters[Math.floor(Math.random()*letters.length)]], w:1, h:1};
+  for (let i = 0; i < 16; i++) {
+    const randomLetter = letters[Math.floor(Math.random() * letters.length)];
+    board[positions[i]] = randomLetter;
   }
 
   scoreDrag = 0;
   document.getElementById("currentWord").textContent = "";
   document.getElementById("foundWordsDrag").innerHTML = "";
   document.getElementById("scoreDrag").textContent = `Score: ${scoreDrag}`;
+
   renderBoard();
 }
 
@@ -121,96 +101,139 @@ function renderBoard() {
   const boardEl = document.getElementById("tileBoard");
   boardEl.innerHTML = "";
 
-  board.forEach((tileObj, index) => {
-    if (!tileObj) return;
-    const tile = document.createElement("div");
-    tile.className = "drag-tile";
-    tile.textContent = tileObj.letters.join("");
-    tile.dataset.index = index;
-    tile.draggable = true;
-    tile.style.gridColumn = `span ${tileObj.w}`;
-    tile.style.gridRow = `span ${tileObj.h}`;
+  board.forEach((letter, index) => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
 
-    tile.addEventListener("dragstart", e => {
-      draggedIndex = index;
-      e.dataTransfer.setDragImage(new Image(), 0, 0);
-    });
+    if (letter) {
+      const tile = document.createElement("div");
+      tile.className = "drag-tile";
+      tile.textContent = letter;
+      tile.dataset.index = index;
+      tile.draggable = true;
 
-    tile.addEventListener("dragover", e => e.preventDefault());
-    tile.addEventListener("drop", e => {
+      // Drag events
+      tile.addEventListener("dragstart", e => {
+        draggedIndex = index;
+        e.dataTransfer.setDragImage(new Image(), 0, 0);
+      });
+
+      cell.appendChild(tile);
+    }
+
+    // Drop events for the cell
+    cell.addEventListener("dragover", e => e.preventDefault());
+    cell.addEventListener("drop", e => {
       if (draggedIndex === null) return;
       [board[draggedIndex], board[index]] = [board[index], board[draggedIndex]];
       draggedIndex = null;
       renderBoard();
-      checkBoardForWords();
+
+      checkBoardForWords(); // automatically check for new words
     });
 
-    boardEl.appendChild(tile);
+    boardEl.appendChild(cell);
   });
 }
 
 // ---------- Points ----------
-function calculatePoints(length){
-  switch(length){
-    case 3: return 100; case 4: return 400; case 5: return 800;
-    case 6: return 1400; case 7: return 1800; case 8: return 2200;
-    case 9: return 2600; default: return 0;
+function calculatePoints(length) {
+  switch(length) {
+    case 3: return 100;
+    case 4: return 400;
+    case 5: return 800;
+    case 6: return 1400;
+    case 7: return 1800;
+    case 8: return 2200;
+    case 9: return 2600;
+    default: return 0;
   }
 }
 
 // ---------- Automatic Word Checking ----------
-function checkBoardForWords(){
-  if(!dictionary) return;
+function checkBoardForWords() {
+  if (!dictionary) return;
+
   const foundList = document.getElementById("foundWordsDrag");
   let newWordsFound = [];
 
-  function checkLine(line){
-    let start=0;
-    while(start<line.length){
-      if(!line[start]){ start++; continue; }
-      let end=start;
-      while(end<line.length && line[end]) end++;
-      const segment=line.slice(start,end);
-      const word=segment.map(t=>t.letters.join("")).join("");
-      if(word.length>=3 &&
-         dictionary.has(word) &&
-         ![...foundList.children].some(div=>div.textContent.split(' ')[0]===word) &&
-         !newWordsFound.includes(word)) newWordsFound.push(word);
-      start=end;
+  function checkLine(line) {
+    let start = 0;
+    while (start < line.length) {
+      if (!line[start]) { 
+        start++;
+        continue;
+      }
+
+      let end = start;
+      while (end < line.length && line[end]) end++;
+
+      const segment = line.slice(start, end);
+      const word = segment.join(""); // full segment only
+
+      // Only award points if length >=3 and is valid
+      if (word.length >= 3 &&
+          dictionary.has(word) &&
+          ![...foundList.children].some(div => div.textContent.split(' ')[0] === word) &&
+          !newWordsFound.includes(word)) {
+        newWordsFound.push(word);
+      }
+
+      start = end;
     }
   }
 
-  for(let r=0;r<rows;r++) checkLine(board.slice(r*cols,r*cols+cols));
-  for(let c=0;c<cols;c++){
-    const col=[];
-    for(let r=0;r<rows;r++) col.push(board[r*cols+c]);
+  // Horizontal check
+  for (let r = 0; r < rows; r++) {
+    const row = board.slice(r * cols, r * cols + cols);
+    checkLine(row);
+  }
+
+  // Vertical check
+  for (let c = 0; c < cols; c++) {
+    const col = [];
+    for (let r = 0; r < rows; r++) {
+      col.push(board[r * cols + c]);
+    }
     checkLine(col);
   }
 
-  newWordsFound.forEach(word=>{
+  // Award points for newly found words
+  newWordsFound.forEach(word => {
     const points = calculatePoints(word.length);
-    scoreDrag+=points;
-    const wordDiv=document.createElement("div");
-    wordDiv.textContent=`${word} (+${points} pts)`;
+    scoreDrag += points;
+    const wordDiv = document.createElement("div");
+    wordDiv.textContent = `${word} (+${points} pts)`;
     foundList.appendChild(wordDiv);
   });
 
-  const wordDivs=Array.from(foundList.children);
-  wordDivs.sort((a,b)=>parseInt(b.textContent.split('(+')[1])-parseInt(a.textContent.split('(+')[1]));
-  foundList.innerHTML="";
-  wordDivs.forEach(div=>foundList.appendChild(div));
-  if(newWordsFound.length>0) document.getElementById("scoreDrag").textContent=`Score: ${scoreDrag}`;
+  // Sort the list by points descending
+  const wordDivs = Array.from(foundList.children);
+  wordDivs.sort((a, b) => {
+    const pointsA = parseInt(a.textContent.split('(+')[1]);
+    const pointsB = parseInt(b.textContent.split('(+')[1]);
+    return pointsB - pointsA; // highest points first
+  });
+
+  foundList.innerHTML = "";
+  wordDivs.forEach(div => foundList.appendChild(div));
+
+  // Update score if any new words found
+  if (newWordsFound.length > 0) {
+    document.getElementById("scoreDrag").textContent = `Score: ${scoreDrag}`;
+  }
 }
 
 // ---------- Reset Board ----------
 document.getElementById("resetBoardBtn").addEventListener("click", generateTiles16);
 
 // ---------- Utility ----------
-function shuffleArray(arr){
-  for(let i=arr.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
 
 })();
+
