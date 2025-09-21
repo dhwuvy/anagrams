@@ -136,38 +136,53 @@ document.getElementById("submitWordBtn").addEventListener("click", () => {
   let newWordsFound = [];
 
   function checkLine(line) {
-    const n = line.length;
-    for (let len = 3; len <= Math.min(9, n); len++) {
-      for (let start = 0; start <= n - len; start++) {
-        const word = line.slice(start, start + len).join("");
-        if (dictionary.has(word) &&
-            ![...foundList.children].some(div => div.textContent.split(' ')[0] === word) &&
-            !newWordsFound.includes(word)) {
-          newWordsFound.push(word);
+    let start = 0;
+    while (start < line.length) {
+      if (!line[start]) { // blank cell
+        start++;
+        continue;
+      }
+
+      // find end of this contiguous letter segment
+      let end = start;
+      while (end < line.length && line[end]) end++;
+
+      const segment = line.slice(start, end);
+      const n = segment.length;
+
+      for (let len = 3; len <= Math.min(9, n); len++) {
+        for (let i = 0; i <= n - len; i++) {
+          const word = segment.slice(i, i + len).join("");
+          if (dictionary.has(word) &&
+              ![...foundList.children].some(div => div.textContent.split(' ')[0] === word) &&
+              !newWordsFound.includes(word)) {
+            newWordsFound.push(word);
+          }
         }
       }
+
+      start = end; // move past this segment
     }
   }
 
-  // Check horizontally
+  // ---------- Horizontal ----------
   for (let r = 0; r < rows; r++) {
-    const row = board.slice(r * cols, r * cols + cols).filter(Boolean);
-    if (row.length) checkLine(row);
+    const row = board.slice(r * cols, r * cols + cols);
+    checkLine(row);
   }
 
-  // Check vertically
+  // ---------- Vertical ----------
   for (let c = 0; c < cols; c++) {
-    let col = [];
+    const col = [];
     for (let r = 0; r < rows; r++) {
-      const letter = board[r * cols + c];
-      if (letter) col.push(letter);
+      col.push(board[r * cols + c]);
     }
-    if (col.length) checkLine(col);
+    checkLine(col);
   }
 
   if (newWordsFound.length === 0) return alert("No new words found!");
 
-  // Award points for all found words
+  // ---------- Award points ----------
   newWordsFound.forEach(word => {
     const points = calculatePoints(word.length);
     scoreDrag += points;
