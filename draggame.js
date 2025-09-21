@@ -2,8 +2,8 @@
 
 // ================= Drag & Drop Game =================
 const letters = "ABCDEFGHIKLMNOPRSTUVWY";
-const rows = 8;
-const cols = 9;
+const rows = 9;
+const cols = 8;
 let board = Array(rows * cols).fill(null); // 72-cell board
 let currentWord = "";
 let scoreDrag = 0;
