@@ -112,24 +112,42 @@ function renderBoard() {
       tile.dataset.index = index;
       tile.draggable = true;
 
-      // Drag events
+      // --- Drag events for desktop ---
       tile.addEventListener("dragstart", e => {
         draggedIndex = index;
         e.dataTransfer.setDragImage(new Image(), 0, 0);
       });
 
+      // --- Touch events for mobile ---
+      tile.addEventListener("touchstart", e => {
+        draggedIndex = index;
+        e.preventDefault();
+      });
+
+      tile.addEventListener("touchend", e => {
+        const touch = e.changedTouches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (target && target.classList.contains("drag-tile")) {
+          const targetIndex = parseInt(target.dataset.index);
+          [board[draggedIndex], board[targetIndex]] = [board[targetIndex], board[draggedIndex]];
+          draggedIndex = null;
+          renderBoard();
+          checkBoardForWords();
+        }
+        e.preventDefault();
+      });
+
       cell.appendChild(tile);
     }
 
-    // Drop events for the cell
+    // Drop events for the cell (desktop)
     cell.addEventListener("dragover", e => e.preventDefault());
     cell.addEventListener("drop", e => {
       if (draggedIndex === null) return;
       [board[draggedIndex], board[index]] = [board[index], board[draggedIndex]];
       draggedIndex = null;
       renderBoard();
-
-      checkBoardForWords(); // automatically check for new words
+      checkBoardForWords();
     });
 
     boardEl.appendChild(cell);
@@ -171,7 +189,6 @@ function checkBoardForWords() {
       const segment = line.slice(start, end);
       const word = segment.join(""); // full segment only
 
-      // Only award points if length >=3 and is valid
       if (word.length >= 3 &&
           dictionary.has(word) &&
           ![...foundList.children].some(div => div.textContent.split(' ')[0] === word) &&
@@ -183,13 +200,11 @@ function checkBoardForWords() {
     }
   }
 
-  // Horizontal check
   for (let r = 0; r < rows; r++) {
     const row = board.slice(r * cols, r * cols + cols);
     checkLine(row);
   }
 
-  // Vertical check
   for (let c = 0; c < cols; c++) {
     const col = [];
     for (let r = 0; r < rows; r++) {
@@ -198,7 +213,6 @@ function checkBoardForWords() {
     checkLine(col);
   }
 
-  // Award points for newly found words
   newWordsFound.forEach(word => {
     const points = calculatePoints(word.length);
     scoreDrag += points;
@@ -207,18 +221,11 @@ function checkBoardForWords() {
     foundList.appendChild(wordDiv);
   });
 
-  // Sort the list by points descending
   const wordDivs = Array.from(foundList.children);
-  wordDivs.sort((a, b) => {
-    const pointsA = parseInt(a.textContent.split('(+')[1]);
-    const pointsB = parseInt(b.textContent.split('(+')[1]);
-    return pointsB - pointsA; // highest points first
-  });
-
+  wordDivs.sort((a, b) => parseInt(b.textContent.split('(+')[1]) - parseInt(a.textContent.split('(+')[1]));
   foundList.innerHTML = "";
   wordDivs.forEach(div => foundList.appendChild(div));
 
-  // Update score if any new words found
   if (newWordsFound.length > 0) {
     document.getElementById("scoreDrag").textContent = `Score: ${scoreDrag}`;
   }
@@ -236,4 +243,3 @@ function shuffleArray(arr) {
 }
 
 })();
-
