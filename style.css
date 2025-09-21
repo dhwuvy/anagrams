@@ -12,27 +12,27 @@ body {
   /* Single tile fills the entire viewport */
   background-image: url("bg-tile.png");
   background-repeat: no-repeat;
-  background-size: 100vw 100vh;   /* width = viewport width, height = viewport height */
+  background-size: 100vw 100vh;
   background-position: center center;
-  background-attachment: fixed;    /* keeps the tile in place when scrolling */
+  background-attachment: fixed;
 }
 
 h1 {
   margin: 20px 0 10px;
-  font-size: 3rem; /* zoomed in */
+  font-size: 3rem;
 }
 
 #status {
   font-style: italic;
   color: #555;
   margin: 10px 0 16px;
-  font-size: 1.2rem; /* slightly larger */
+  font-size: 1.2rem;
 }
 
 #tiles {
   display: flex;
   justify-content: center;
-  gap: 16px; /* bigger gap for zoom */
+  gap: 16px;
   margin: 24px 0;
   border: none;
   box-shadow: none;
@@ -40,7 +40,7 @@ h1 {
 }
 
 .tile {
-  width: 80px;  /* bigger tiles */
+  width: 80px;
   height: 80px;
   background: #ffeb99;
   border: 3px solid #d4af37;
@@ -48,7 +48,7 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 36px;  /* bigger letters */
+  font-size: 36px;
   font-weight: bold;
   box-shadow: 3px 3px 6px rgba(0,0,0,0.3);
 }
@@ -91,7 +91,7 @@ h1 {
 #wordInput {
   padding: 10px 12px;
   font-size: 1.8rem;
-  width: 260px;  /* wider input */
+  width: 260px;
 }
 
 button {
@@ -102,7 +102,6 @@ button {
   border-radius: 8px;
 }
 
-/* Show Anagrams button */
 #showAnagramsBtn {
   margin: 16px 0;
   padding: 10px 18px;
@@ -111,7 +110,6 @@ button {
   border-radius: 8px;
 }
 
-/* Anagrams list */
 #anagramsList {
   list-style: none;
   padding: 0;
@@ -130,7 +128,6 @@ button {
 
 /* ================= Drag & Drop Game ================= */
 
-/* Board container - 8x9 visible grid */
 #tileBoard {
   display: grid;
   grid-template-columns: repeat(8, 80px);
@@ -140,20 +137,17 @@ button {
   margin: 20px auto;
   border: 2px solid #d4af37;
   border-radius: 12px;
-  background: #fdf5e6; /* light background to see board */
+  background: #fdf5e6;
+  position: relative;
 }
 
-/* Cells for 72 discrete positions */
 .cell {
   width: 80px;
   height: 80px;
   position: relative;
 }
 
-/* Drag & Drop Tiles */
 .drag-tile {
-  width: 80px;
-  height: 80px;
   background: #ffeb99;
   border: 3px solid #d4af37;
   border-radius: 12px;
@@ -165,6 +159,7 @@ button {
   box-shadow: 3px 3px 6px rgba(0,0,0,0.3);
   cursor: grab;
   user-select: none;
+  position: absolute; /* allow precise placement on grid */
 }
 
 .drag-tile:active {
@@ -172,28 +167,24 @@ button {
   z-index: 10;
 }
 
-/* Current word */
 #currentWord {
   font-size: 2rem;
   font-weight: bold;
   margin-top: 20px;
 }
 
-/* Found words list */
 #foundWordsDrag {
   margin-top: 16px;
   font-size: 1.6rem;
   font-weight: bold;
 }
 
-/* Score display */
 #scoreDrag {
   font-size: 2rem;
   font-weight: bold;
   margin-top: 10px;
 }
 
-/* Buttons */
 #resetBoardBtn,
 #submitWordBtn {
   padding: 10px 18px;
@@ -202,3 +193,8 @@ button {
   border-radius: 8px;
   margin: 6px;
 }
+
+/* ================= Merged Tile Support ================= */
+/* 1x2 and 2x1 tiles fill multiple cells visually */
+.drag-tile[data-width="2"] { width: calc(80px*2 + 12px); }
+.drag-tile[data-height="2"] { height: calc(80px*2 + 12px); }
