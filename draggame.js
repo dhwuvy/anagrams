@@ -36,6 +36,10 @@ function showDragDrop() {
   document.getElementById("dragDropGame").style.display = "block";
   if (window.hideAnagramsUI) window.hideAnagramsUI();
   generateTiles16();
+
+  // Hide the Submit Word button in drag-and-drop mode
+  const submitBtn = document.getElementById("submitWordBtn");
+  if (submitBtn) submitBtn.style.display = "none";
 }
 
 // Attach button listeners
@@ -108,6 +112,8 @@ function renderBoard() {
       [board[draggedIndex], board[index]] = [board[index], board[draggedIndex]];
       draggedIndex = null;
       renderBoard();
+
+      checkBoardForWords(); // automatically check for new words
     });
 
     boardEl.appendChild(cell);
@@ -128,47 +134,45 @@ function calculatePoints(length) {
   }
 }
 
-// ---------- Submit Word ----------
-document.getElementById("submitWordBtn").addEventListener("click", () => {
-  if (!dictionary) return alert("Dictionary still loading...");
+// ---------- Automatic Word Checking ----------
+function checkBoardForWords() {
+  if (!dictionary) return;
 
   const foundList = document.getElementById("foundWordsDrag");
   let newWordsFound = [];
 
-function checkLine(line) {
-  let start = 0;
-  while (start < line.length) {
-    if (!line[start]) { // skip blanks
-      start++;
-      continue;
+  function checkLine(line) {
+    let start = 0;
+    while (start < line.length) {
+      if (!line[start]) { 
+        start++;
+        continue;
+      }
+
+      let end = start;
+      while (end < line.length && line[end]) end++;
+
+      const segment = line.slice(start, end);
+      const word = segment.join(""); // full segment only
+
+      // Only award points if the entire segment is a valid word
+      if (dictionary.has(word) &&
+          ![...foundList.children].some(div => div.textContent.split(' ')[0] === word) &&
+          !newWordsFound.includes(word)) {
+        newWordsFound.push(word);
+      }
+
+      start = end;
     }
-
-    // find the end of this contiguous letter segment
-    let end = start;
-    while (end < line.length && line[end]) end++;
-
-    const segment = line.slice(start, end);
-    const word = segment.join(""); // full segment only
-
-    // Only award points if the entire segment is a valid word
-    if (dictionary.has(word) &&
-        ![...foundList.children].some(div => div.textContent.split(' ')[0] === word) &&
-        !newWordsFound.includes(word)) {
-      newWordsFound.push(word);
-    }
-
-    start = end; // move to the next segment
   }
-}
 
-
-  // ---------- Horizontal ----------
+  // Horizontal check
   for (let r = 0; r < rows; r++) {
     const row = board.slice(r * cols, r * cols + cols);
     checkLine(row);
   }
 
-  // ---------- Vertical ----------
+  // Vertical check
   for (let c = 0; c < cols; c++) {
     const col = [];
     for (let r = 0; r < rows; r++) {
@@ -177,9 +181,7 @@ function checkLine(line) {
     checkLine(col);
   }
 
-  if (newWordsFound.length === 0) return alert("No new words found!");
-
-  // ---------- Award points ----------
+  // Award points for newly found words
   newWordsFound.forEach(word => {
     const points = calculatePoints(word.length);
     scoreDrag += points;
@@ -188,8 +190,11 @@ function checkLine(line) {
     foundList.appendChild(wordDiv);
   });
 
-  document.getElementById("scoreDrag").textContent = `Score: ${scoreDrag}`;
-});
+  // Update score if any new words found
+  if (newWordsFound.length > 0) {
+    document.getElementById("scoreDrag").textContent = `Score: ${scoreDrag}`;
+  }
+}
 
 // ---------- Reset Board ----------
 document.getElementById("resetBoardBtn").addEventListener("click", generateTiles16);
@@ -203,3 +208,4 @@ function shuffleArray(arr) {
 }
 
 })();
+
