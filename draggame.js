@@ -18,6 +18,7 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
       .map(w => w.trim().toUpperCase())
       .filter(w => /^[A-Z]+$/.test(w));
     dictionary = new Set(words);
+
     const status = document.getElementById("status");
     if (status) status.textContent = "Dictionary loaded! Start playing!";
   })
@@ -44,6 +45,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const classicBtn = document.querySelector("button[onclick='showClassic()']");
   if (classicBtn) classicBtn.addEventListener("click", showClassic);
+
+  // New Game button in Classic
+  const newGameBtn = document.getElementById("newGameBtn");
+  if (newGameBtn) newGameBtn.addEventListener("click", () => {
+    if (window.generateTiles) window.generateTiles();
+    document.getElementById("score").textContent = "Score: 0";
+    document.getElementById("foundWords").innerHTML = "";
+    document.getElementById("anagramsList").innerHTML = "";
+    document.getElementById("message").textContent = "";
+    document.getElementById("wordInput").value = "";
+  });
 });
 
 // ---------- Drag & Drop Board ----------
@@ -84,10 +96,6 @@ function renderBoard() {
       tile.addEventListener("dragstart", e => {
         draggedIndex = index;
         e.dataTransfer.setDragImage(new Image(), 0, 0);
-      });
-
-      tile.addEventListener("click", () => {
-        // No more currentWord accumulation
       });
 
       cell.appendChild(tile);
