@@ -52,24 +52,33 @@ function generateTiles16() {
 function displayTileBoard() {
   const board = document.getElementById("tileBoard");
   board.innerHTML = "";
+  const boardWidth = board.clientWidth;
+  const boardHeight = board.clientHeight;
+
   tiles.forEach((letter, index) => {
     const tile = document.createElement("div");
     tile.className = "tile";
     tile.textContent = letter;
     tile.draggable = true;
-    tile.dataset.index = index;
 
-    // Drag events
-    tile.addEventListener("dragstart", e => draggedIndex = e.target.dataset.index);
-    tile.addEventListener("dragover", e => e.preventDefault());
-    tile.addEventListener("drop", e => {
-      const targetIndex = e.target.dataset.index;
-      [tiles[draggedIndex], tiles[targetIndex]] = [tiles[targetIndex], tiles[draggedIndex]];
-      displayTileBoard();
-      draggedIndex = null;
+    // Random initial position inside board
+    tile.style.position = "absolute";
+    tile.style.left = `${Math.random() * (boardWidth - 50)}px`;
+    tile.style.top = `${Math.random() * (boardHeight - 50)}px`;
+
+    // Drag functionality
+    tile.addEventListener("dragstart", e => {
+      draggedIndex = index;
+      e.dataTransfer.setDragImage(new Image(), 0, 0); // hide default ghost
     });
 
-    // Click to add letter to current word
+    tile.addEventListener("dragend", e => {
+      const rect = board.getBoundingClientRect();
+      tile.style.left = `${e.clientX - rect.left - 25}px`;
+      tile.style.top = `${e.clientY - rect.top - 25}px`;
+    });
+
+    // Click to add letter
     tile.addEventListener("click", () => {
       currentWord += tile.textContent;
       document.getElementById("currentWord").textContent = currentWord;
@@ -120,12 +129,14 @@ document.getElementById("submitWordBtn").addEventListener("click", () => {
   currentWord = "";
   document.getElementById("currentWord").textContent = "";
 });
+
 // ---------- Reset Board ----------
 document.getElementById("resetBoardBtn").addEventListener("click", generateTiles16);
 
 document.addEventListener("DOMContentLoaded", () => {
-const btn = document.getElementById("dragDropBtn");
-if (btn) btn.addEventListener("click", showDragDrop);
-
+  const btn = document.getElementById("dragDropBtn");
+  if (btn) btn.addEventListener("click", showDragDrop);
 });
+
 })();
+
