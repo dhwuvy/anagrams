@@ -244,6 +244,15 @@ document.getElementById("showAnagramsBtn").addEventListener("click", () => {
     wEl.style.fontWeight = "bold";
     anagramsDiv.appendChild(wEl);
   });
+
+  // 🟢 NEW FEATURE: Show total number of anagrams
+  const totalEl = document.createElement("div");
+  totalEl.style.marginTop = "12px";
+  totalEl.style.fontSize = "20px";
+  totalEl.style.fontWeight = "bold";
+  totalEl.style.color = "#007700";
+  totalEl.textContent = `Total anagrams found: ${validWords.length}`;
+  anagramsDiv.appendChild(totalEl);
 });
 
 // ---------- Tab + Enter reset ----------
@@ -266,4 +275,3 @@ document.addEventListener("keyup", (e) => { if (e.key === "Tab") tabPressed = fa
 
 // ---------- New Game button ----------
 newGameBtn.addEventListener("click", generateTiles);
-
