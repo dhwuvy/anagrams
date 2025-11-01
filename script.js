@@ -237,6 +237,15 @@ document.getElementById("showAnagramsBtn").addEventListener("click", () => {
     return;
   }
 
+  // 🟢 NEW FEATURE: Show total number of anagrams ABOVE the list
+  const totalEl = document.createElement("div");
+  totalEl.style.marginBottom = "12px";
+  totalEl.style.fontSize = "20px";
+  totalEl.style.fontWeight = "bold";
+  totalEl.style.color = "#007700";
+  totalEl.textContent = `Total anagrams found: ${validWords.length}`;
+  anagramsDiv.appendChild(totalEl);
+
   validWords.forEach(word => {
     const wEl = document.createElement("div");
     wEl.textContent = `${word} (+${calculatePoints(word.length)} pts)`;
@@ -244,15 +253,6 @@ document.getElementById("showAnagramsBtn").addEventListener("click", () => {
     wEl.style.fontWeight = "bold";
     anagramsDiv.appendChild(wEl);
   });
-
-  // 🟢 NEW FEATURE: Show total number of anagrams
-  const totalEl = document.createElement("div");
-  totalEl.style.marginTop = "12px";
-  totalEl.style.fontSize = "20px";
-  totalEl.style.fontWeight = "bold";
-  totalEl.style.color = "#007700";
-  totalEl.textContent = `Total anagrams found: ${validWords.length}`;
-  anagramsDiv.appendChild(totalEl);
 });
 
 // ---------- Tab + Enter reset ----------
