@@ -22,7 +22,14 @@
     <button id="newGameBtn">New Game</button>
 
     <div id="tiles" style="margin-top: 10px;"></div>
-    <div id="timer">Time: 0s</div>
+
+    <!-- ✅ Updated Timer Block (Classic Mode) -->
+    <div id="timer" style="margin-top:10px;">
+      Time:
+      <span id="timerValue">0</span>s
+      <input type="number" id="timerInputClassic" min="5" value="120" style="width:60px;">
+    </div>
+
     <div id="score">Score: 0</div>
     <div id="message" style="color: red;"></div>
 
@@ -45,11 +52,19 @@
   <!-- Drag & Drop Game -->
   <div id="dragDropGame" style="display:none; margin-top:20px;">
     <button id="resetBoardBtn">Reset Board</button>
+
     <div id="tileBoard" style="margin-top: 10px;"></div>
     <div id="currentWord"></div>
     <button id="submitWordBtn">Submit Word</button>
     <div id="foundWordsDrag" style="margin-top: 10px;"></div>
     <div id="scoreDrag">Score: 0</div>
+
+    <!-- ✅ New Timer Block (Drag & Drop Mode) -->
+    <div id="timerDrag" style="margin-top: 10px;">
+      Time:
+      <span id="timerValueDrag">0</span>s
+      <input type="number" id="timerInputDrag" min="5" value="120" style="width:60px;">
+    </div>
   </div>
 
   <!-- Scripts -->
@@ -57,5 +72,3 @@
   <script src="draggame.js"></script>
 </body>
 </html>
-
-
