@@ -3,14 +3,16 @@ let tiles = [];
 let dictionary = null;
 let score = 0;
 
-// Stopwatch variables
+// Countdown Timer variables
 let timerInterval = null;
-let secondsElapsed = 0;
+let timeRemaining = 0;
+let timerLocked = false;
 
 // Grab existing HTML elements
 const statusDiv = document.getElementById("status");
 const tilesDiv = document.getElementById("tiles");
-const timerDiv = document.getElementById("timer");
+const timerValueSpan = document.getElementById("timerValue");
+const timerInputClassic = document.getElementById("timerInputClassic");
 const wordForm = document.getElementById("wordForm");
 const messageDiv = document.getElementById("message");
 const scoreDiv = document.getElementById("score");
@@ -20,6 +22,7 @@ const customLettersBtn = document.getElementById("customLettersBtn");
 const customLettersInput = document.getElementById("customLettersInput");
 const wordLengthInput = document.getElementById("wordLength");
 const newGameBtn = document.getElementById("newGameBtn");
+const wordInput = document.getElementById("wordInput");
 
 // Load dictionary
 fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
@@ -45,18 +48,24 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
     statusDiv.textContent = "Failed to load dictionary!";
   });
 
-// ---------- Points table for 3–15 letters ----------
+// ---------- Points table ----------
 const pointsTable = {
   3: 100, 4: 400, 5: 1200, 6: 2000, 7: 3000,
   8: 4000, 9: 5000, 10: 6000, 11: 7000, 12: 8000,
   13: 9000, 14: 10000, 15: 11000
 };
-
 function calculatePoints(length) {
   return pointsTable[length] || 0;
 }
 
-// ---------- Generate N random letters ----------
+// ---------- Enable/Disable Gameplay ----------
+function setClassicInputEnabled(enabled) {
+  wordInput.disabled = !enabled;
+  wordForm.querySelector("button").disabled = !enabled;
+  timerLocked = !enabled;
+}
+
+// ---------- Generate Tiles ----------
 function generateTiles() {
   if (!dictionary) return;
 
@@ -98,11 +107,13 @@ function generateTiles() {
   anagramsDiv.innerHTML = "";
   score = 0;
   scoreDiv.textContent = `Score: ${score}`;
-  startTimer();
   messageDiv.textContent = "";
+  setClassicInputEnabled(true);
+
+  startCountdownClassic();
 }
 
-// ---------- Display tiles ----------
+// ---------- Display Tiles ----------
 function displayTiles() {
   tilesDiv.innerHTML = "";
   tiles.forEach(letter => {
@@ -113,30 +124,41 @@ function displayTiles() {
   });
 }
 
-// ---------- Timer ----------
-function startTimer() {
+// ---------- Countdown Timer ----------
+function startCountdownClassic() {
   clearInterval(timerInterval);
-  secondsElapsed = 0;
-  timerDiv.textContent = `Time: 0s`;
+  let set = parseInt(timerInputClassic.value, 10);
+  if (isNaN(set) || set < 5) set = 30;
+
+  timeRemaining = set;
+  timerValueSpan.textContent = timeRemaining;
+  timerLocked = false;
+
   timerInterval = setInterval(() => {
-    secondsElapsed++;
-    timerDiv.textContent = `Time: ${secondsElapsed}s`;
+    timeRemaining--;
+    timerValueSpan.textContent = timeRemaining;
+
+    if (timeRemaining <= 0) {
+      clearInterval(timerInterval);
+      timerValueSpan.textContent = "0";
+      setClassicInputEnabled(false);
+    }
   }, 1000);
 }
 
-// ---------- Word submission ----------
+// ---------- Word Submission ----------
 wordForm.addEventListener("submit", e => {
   e.preventDefault();
-  const input = document.getElementById("wordInput");
-  const word = input.value.trim().toUpperCase();
-  if (!dictionary) { messageDiv.textContent = "Dictionary still loading..."; input.value = ""; return; }
-  if (word.length < 3) { messageDiv.textContent = "Words must be at least 3 letters!"; input.value = ""; return; }
-  if (!canFormWord(word)) { messageDiv.textContent = "Invalid word! Uses letters not in tiles."; input.value = ""; return; }
-  if (!dictionary.has(word)) { messageDiv.textContent = "Not a valid word!"; input.value = ""; return; }
+  if (timerLocked) return; // ⛔ Block scoring
 
+  const word = wordInput.value.trim().toUpperCase();
+  if (!dictionary) { messageDiv.textContent = "Dictionary still loading..."; wordInput.value = ""; return; }
+  if (word.length < 3) { messageDiv.textContent = "Words must be at least 3 letters!"; wordInput.value = ""; return; }
+  if (!canFormWord(word)) { messageDiv.textContent = "Invalid word! Uses letters not in tiles."; wordInput.value = ""; return; }
+  if (!dictionary.has(word)) { messageDiv.textContent = "Not a valid word!"; wordInput.value = ""; return; }
   if ([...foundWordsDiv.children].some(li => li.textContent.split(' ')[0] === word)) {
     messageDiv.textContent = "You already used that word!";
-    input.value = "";
+    wordInput.value = "";
     return;
   }
 
@@ -146,7 +168,6 @@ wordForm.addEventListener("submit", e => {
   li.style.fontSize = "18px";
   li.style.fontWeight = "bold";
 
-  // Insert in score order
   let inserted = false;
   for (let existingLi of foundWordsDiv.children) {
     const existingPoints = parseInt(existingLi.textContent.match(/\+(\d+) pts/)[1], 10);
@@ -162,10 +183,10 @@ wordForm.addEventListener("submit", e => {
   scoreDiv.textContent = `Score: ${score}`;
   messageDiv.textContent = `+${points} points for "${word}"!`;
   messageDiv.style.color = "red";
-  input.value = "";
+  wordInput.value = "";
 });
 
-// ---------- Check if word can be formed ----------
+// ---------- Can Form Word ----------
 function canFormWord(word) {
   let tempTiles = [...tiles];
   for (let char of word.toUpperCase()) {
@@ -176,7 +197,7 @@ function canFormWord(word) {
   return true;
 }
 
-// ---------- Custom letters ----------
+// ---------- Custom Letters ----------
 customLettersBtn.addEventListener("click", () => {
   let lettersInput = customLettersInput.value.trim().toUpperCase();
   const targetLength = parseInt(wordLengthInput.value, 10);
@@ -207,10 +228,11 @@ customLettersBtn.addEventListener("click", () => {
   messageDiv.textContent = "Custom letters set!";
   score = 0;
   scoreDiv.textContent = `Score: ${score}`;
-  startTimer();
+  setClassicInputEnabled(true);
+  startCountdownClassic();
 });
 
-// ---------- Show anagrams ----------
+// ---------- Show Anagrams ----------
 document.getElementById("showAnagramsBtn").addEventListener("click", () => {
   anagramsDiv.innerHTML = "";
   if (!dictionary) return;
@@ -237,7 +259,6 @@ document.getElementById("showAnagramsBtn").addEventListener("click", () => {
     return;
   }
 
-  // 🟢 NEW FEATURE: Show total number of anagrams ABOVE the list
   const totalEl = document.createElement("div");
   totalEl.style.marginBottom = "12px";
   totalEl.style.fontSize = "20px";
@@ -267,11 +288,11 @@ document.addEventListener("keydown", (e) => {
     foundWordsDiv.innerHTML = "";
     anagramsDiv.innerHTML = "";
     messageDiv.textContent = "";
-    document.getElementById("wordInput").value = "";
+    wordInput.value = "";
     tabPressed = false;
   }
 });
 document.addEventListener("keyup", (e) => { if (e.key === "Tab") tabPressed = false; });
 
-// ---------- New Game button ----------
+// ---------- New Game ----------
 newGameBtn.addEventListener("click", generateTiles);
