@@ -8,21 +8,12 @@ let board = Array(rows * cols).fill(null); // 72-cell board
 let scoreDrag = 0;
 let draggedIndex = null;
 
-// ---------- Timer ----------
+// Countdown Timer variables
 let timerInterval = null;
-let secondsElapsed = 0;
+let timeRemaining = 0;
+let timerLocked = false;
 
-function startTimer() {
-  clearInterval(timerInterval);
-  secondsElapsed = 0;
-  document.getElementById("timer").textContent = "Time: 0s";
-  timerInterval = setInterval(() => {
-    secondsElapsed++;
-    document.getElementById("timer").textContent = `Time: ${secondsElapsed}s`;
-  }, 1000);
-}
-
-// Shared dictionary
+// ---------- Shared dictionary ----------
 let dictionary = null;
 fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
   .then(res => res.text())
@@ -42,20 +33,12 @@ fetch("https://raw.githubusercontent.com/dhwuvy/anagrams/main/words.txt")
 function showClassic() {
   document.getElementById("classicGame").style.display = "block";
   document.getElementById("dragDropGame").style.display = "none";
-  if (window.showAnagramsUI) window.showAnagramsUI();
 }
 
 function showDragDrop() {
   document.getElementById("classicGame").style.display = "none";
   document.getElementById("dragDropGame").style.display = "block";
-  if (window.hideAnagramsUI) window.hideAnagramsUI();
   generateTiles16();
-
-  // Hide the Submit Word button in drag-and-drop mode
-  const submitBtn = document.getElementById("submitWordBtn");
-  if (submitBtn) submitBtn.style.display = "none";
-
-  startTimer(); // start the timer for this game
 }
 
 // Attach button listeners
@@ -66,17 +49,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const classicBtn = document.querySelector("button[onclick='showClassic()']");
   if (classicBtn) classicBtn.addEventListener("click", showClassic);
 
-  // New Game button in Classic
-  const newGameBtn = document.getElementById("newGameBtn");
-  if (newGameBtn) newGameBtn.addEventListener("click", () => {
-    if (window.generateTiles) window.generateTiles();
-    document.getElementById("score").textContent = "Score: 0";
-    document.getElementById("foundWords").innerHTML = "";
-    document.getElementById("anagramsList").innerHTML = "";
-    document.getElementById("message").textContent = "";
-    document.getElementById("wordInput").value = "";
-  });
+  // Reset Board button
+  const resetBtn = document.getElementById("resetBoardBtn");
+  if (resetBtn) resetBtn.addEventListener("click", generateTiles16);
 });
+
+// ---------- Enable/Disable Gameplay ----------
+function setDragInputEnabled(enabled) {
+  const tiles = document.querySelectorAll(".drag-tile");
+  tiles.forEach(t => t.draggable = enabled);
+  document.getElementById("submitWordBtn").disabled = !enabled;
+  timerLocked = !enabled;
+}
 
 // ---------- Drag & Drop Board ----------
 function generateTiles16() {
@@ -93,8 +77,11 @@ function generateTiles16() {
   document.getElementById("currentWord").textContent = "";
   document.getElementById("foundWordsDrag").innerHTML = "";
   document.getElementById("scoreDrag").textContent = `Score: ${scoreDrag}`;
-
   renderBoard();
+
+  // Enable gameplay and start countdown
+  setDragInputEnabled(true);
+  startCountdownDrag();
 }
 
 function renderBoard() {
@@ -110,21 +97,23 @@ function renderBoard() {
       tile.className = "drag-tile";
       tile.textContent = letter;
       tile.dataset.index = index;
-      tile.draggable = true;
+      tile.draggable = !timerLocked;
 
-      // --- Drag events for desktop ---
+      // Drag events
       tile.addEventListener("dragstart", e => {
+        if (timerLocked) { e.preventDefault(); return; }
         draggedIndex = index;
         e.dataTransfer.setDragImage(new Image(), 0, 0);
       });
 
-      // --- Touch events for mobile ---
       tile.addEventListener("touchstart", e => {
+        if (timerLocked) { e.preventDefault(); return; }
         draggedIndex = index;
         e.preventDefault();
       });
 
       tile.addEventListener("touchend", e => {
+        if (timerLocked) return;
         const touch = e.changedTouches[0];
         const target = document.elementFromPoint(touch.clientX, touch.clientY);
         if (target && target.classList.contains("drag-tile")) {
@@ -140,10 +129,10 @@ function renderBoard() {
       cell.appendChild(tile);
     }
 
-    // Drop events for the cell (desktop)
+    // Drop events
     cell.addEventListener("dragover", e => e.preventDefault());
     cell.addEventListener("drop", e => {
-      if (draggedIndex === null) return;
+      if (timerLocked || draggedIndex === null) return;
       [board[draggedIndex], board[index]] = [board[index], board[draggedIndex]];
       draggedIndex = null;
       renderBoard();
@@ -170,7 +159,7 @@ function calculatePoints(length) {
 
 // ---------- Automatic Word Checking ----------
 function checkBoardForWords() {
-  if (!dictionary) return;
+  if (!dictionary || timerLocked) return;
 
   const foundList = document.getElementById("foundWordsDrag");
   let newWordsFound = [];
@@ -178,16 +167,13 @@ function checkBoardForWords() {
   function checkLine(line) {
     let start = 0;
     while (start < line.length) {
-      if (!line[start]) { 
-        start++;
-        continue;
-      }
+      if (!line[start]) { start++; continue; }
 
       let end = start;
       while (end < line.length && line[end]) end++;
 
       const segment = line.slice(start, end);
-      const word = segment.join(""); // full segment only
+      const word = segment.join("");
 
       if (word.length >= 3 &&
           dictionary.has(word) &&
@@ -207,9 +193,7 @@ function checkBoardForWords() {
 
   for (let c = 0; c < cols; c++) {
     const col = [];
-    for (let r = 0; r < rows; r++) {
-      col.push(board[r * cols + c]);
-    }
+    for (let r = 0; r < rows; r++) col.push(board[r * cols + c]);
     checkLine(col);
   }
 
@@ -231,8 +215,30 @@ function checkBoardForWords() {
   }
 }
 
-// ---------- Reset Board ----------
-document.getElementById("resetBoardBtn").addEventListener("click", generateTiles16);
+// ---------- Drag Countdown Timer ----------
+function startCountdownDrag() {
+  clearInterval(timerInterval);
+  const timerValueSpan = document.getElementById("timerValueDrag");
+  const timerInput = document.getElementById("timerInputDrag");
+  let setTime = parseInt(timerInput.value, 10);
+  if (isNaN(setTime) || setTime < 5) setTime = 30;
+
+  timeRemaining = setTime;
+  timerValueSpan.textContent = timeRemaining;
+  timerLocked = false;
+  setDragInputEnabled(true);
+
+  timerInterval = setInterval(() => {
+    timeRemaining--;
+    timerValueSpan.textContent = timeRemaining;
+
+    if (timeRemaining <= 0) {
+      clearInterval(timerInterval);
+      timerValueSpan.textContent = "0";
+      setDragInputEnabled(false);
+    }
+  }, 1000);
+}
 
 // ---------- Utility ----------
 function shuffleArray(arr) {
